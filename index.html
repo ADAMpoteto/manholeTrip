@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>マンホールカード旅</title>
+
+<link rel="icon" href="ka-min.png" type="image/png">
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+<style>
+body {
+  font-family: "Segoe UI", "Hiragino Sans", sans-serif;
+  background: #ffffff;
+  color: #000000;
+  padding: 20px;
+}
+
+/* リンク */
+a {
+  color:#2563eb;
+  text-decoration:none;
+}
+a:hover {
+  text-decoration:underline;
+}
+
+/* ボタン */
+.button {
+  display:inline-block;
+  padding:12px 18px;
+  background:#2563eb;
+  color:#fff;
+  border-radius:8px;
+  font-weight:bold;
+  font-size:18px;
+  margin-bottom:20px;
+  cursor:pointer;
+}
+
+/* タイトル */
+h2 {
+  border-left:5px solid #2563eb;
+  padding-left:10px;
+  font-size:26px;
+}
+.title-area {
+  display: flex;
+  align-items: center; /* 縦中央揃え */
+  gap: 10px; /* 文字と画像の間隔 */
+}
+
+.title-area img {
+  width: 40px;  /* サイズ調整 */
+  height: auto;
+}
+
+/* セレクト */
+select {
+  padding:10px;
+  font-size:18px;
+  margin-bottom:10px;
+}
+
+/* サマリー */
+#summary {
+  margin:10px 0;
+  font-size:20px;
+  font-weight:bold;
+}
+
+/* テーブル */
+.table-wrapper {
+  background:#f9f9f9;
+  border-radius:10px;
+  padding:10px;
+  margin-bottom:20px;
+  overflow-x:auto;
+}
+
+table {
+  width:100%;
+  border-collapse:collapse;
+  min-width:900px;
+}
+
+th, td {
+  border-bottom:1px solid #ddd;
+  padding:6px;
+  font-size:14px;
+}
+
+th {
+  background:#f0f0f0;
+}
+
+/* 列幅 */
+th:nth-child(7), td:nth-child(7) { width:160px; }
+th:nth-child(9), td:nth-child(9) { width:220px; }
+
+/* 済グレーアウト */
+.done {
+  background:#e5e5e5;
+  color:#888;
+}
+
+/* 済テキスト */
+.done-text {
+  font-weight:bold;
+}
+
+.page { display:none; }
+.active { display:block; }
+
+</style>
+</head>
+
+<body>
+
+<!-- メイン -->
+<div id="main" class="page active">
+
+<div class="title-area">
+  <h2>マンホールカード旅</h2>
+  <img src="ka-min.png" alt="アイコン">
+</div>
+
+<a onclick="showPage('guidelines')" class="button">旅行規程</a>
+
+<select id="trip-select"></select>
+
+<div id="summary"></div>
+
+<div id="schedule-container"></div>
+
+</div>
+
+<!-- 規程 -->
+<div id="guidelines" class="page">
+
+<a onclick="showPage('main')" class="button">← 戻る</a>
+
+<h1>マンホールカード旅 規程</h1>
+
+<p>
+本規程は、マンホールカード取得を目的として実施する旅行（以下「本旅行」という。）の円滑かつ安全な遂行を図るため、参加者が遵守すべき事項を定めるものである。
+</p>
+
+<h2>第1条（適用範囲）</h2>
+<ol>
+<li>西川</li>
+<li>小林</li>
+<li>森角</li>
+</ol>
+
+<h2>第2条（費用負担）</h2>
+<ol>
+<li>運転担当者に対しては、走行距離100km（端数切上げ）につき500円を負担金として支給するものとする。</li>
+<li>旅費その他費用の精算については、原則として「Walica」（https://walica.jp/）を用いるものとする。</li>
+</ol>
+
+<h2>第3条（役割分担）</h2>
+<ol>
+<li>運転担当：西川 → 小林 → 森角</li>
+<li>旅程管理：西川</li>
+<li>宿泊予約：西川、小林</li>
+<li>食事予約：西川、森角</li>
+</ol>
+
+<h2>第4条（行程管理）</h2>
+<ol>
+<li>集合場所・時刻は西川が決定するものとする。</li>
+<li>遅刻をする場合は、事前に連絡を必ず行うものとする。</li>
+<li>ただし、西川の遅刻は想定内とする。</li>
+</ol>
+
+</div>
+
+<script>
+
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSA41mdjEDVNsM7E2o2yys_97DR8_qgvWmSHqeNuF3FlAaxjYanBPUEk36R5lZTBy5qwGt7VpHCzoVE/pub?gid=0&single=true&output=csv";
+
+let trips = {};
+let currentTrip = null;
+
+function showPage(page){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(page).classList.add("active");
+}
+
+Papa.parse(CSV_URL, {
+  download: true,
+  header: true,
+  skipEmptyLines: true,
+  complete: function(results) {
+
+    const result = {};
+
+    results.data.forEach(obj => {
+
+      if (!obj["旅行日"] || obj["旅行日"].trim() === "") return;
+
+      const tripName = `${obj["旅行日"]} ${obj["旅行タイトル"]}`;
+      const day = Number(obj["何日目"]);
+
+      if (!result[tripName]) result[tripName] = { days: [] };
+
+      while (result[tripName].days.length < day) {
+        result[tripName].days.push([]);
+      }
+
+      result[tripName].days[day - 1].push({
+        departure: obj["出発時刻"],
+        arrival: obj["到着時刻"],
+        distance: obj["距離(km)"],
+        city: obj["市区町村"],
+        title: obj["訪問先名"],
+        time: obj["営業時間"],
+        address: obj["訪問先住所"],
+        url: obj["URL"],
+        manhole_url: obj["マンホールURL"],
+        done: obj["収集済"] === "済"
+      });
+    });
+
+    trips = result;
+
+    const select = document.getElementById("trip-select");
+    select.innerHTML = "";
+
+    const names = Object.keys(trips);
+
+    names.forEach(name => {
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name;
+      select.appendChild(opt);
+    });
+
+    currentTrip = names[0];
+    select.value = currentTrip;
+
+    select.addEventListener("change", e => {
+      currentTrip = e.target.value;
+      render();
+    });
+
+    render();
+  }
+});
+
+function render(){
+
+  const container = document.getElementById("schedule-container");
+  container.innerHTML = "";
+
+  const days = trips[currentTrip].days;
+
+  let totalDistance = 0;
+  let totalSpots = 0;
+
+  const excludeWords = ["徒歩", "電車", "新幹線", "夕食", "昼食", "ホテル", "観光"];
+  
+  days.forEach(day => {
+    day.forEach(i => {
+      const d = parseFloat(i.distance);
+      if (!isNaN(d)) totalDistance += d;
+      if (!excludeWords.includes(i.city)) totalSpots++;  // ← 除外ワード以外をカウント
+    });
+  });
+
+  document.getElementById("summary").innerHTML =
+    `総距離：${totalDistance.toFixed(1)} km ／ 件数：${totalSpots}`;
+
+  days.forEach((day,idx)=>{
+
+    const div = document.createElement("div");
+    div.className="table-wrapper";
+
+    let html = `<h3>${idx+1}日目</h3>
+    <table>
+    <tr>
+    <th>No</th>
+    <th>済</th>
+    <th>出発</th>
+    <th>到着</th>
+    <th>距離</th>
+    <th>市区町村</th>
+    <th>目的地</th>
+    <th>営業時間</th>
+    <th>住所</th>
+    <th>GKP</th>
+    </tr>`;
+
+    day.forEach((i,index)=>{
+      html += `<tr class="${i.done?'done':''}">
+      <td>${index+1}</td>
+      <td>${i.done ? `<span class="done-text">済</span>` : ""}</td>
+      <td>${i.departure}</td>
+      <td>${i.arrival}</td>
+      <td>${i.distance}</td>
+      <td>${i.city}</td>
+      <td>${i.url ? `<a href="${i.url}" target="_blank">${i.title}</a>` : i.title}</td>
+      <td>${i.time}</td>
+      <td><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(i.address)}" target="_blank">${i.address}</a></td>
+      <td>${i.manhole_url ? `<a href="${i.manhole_url}" target="_blank">🔗</a>` : ""}</td>
+      </tr>`;
+    });
+
+    html += "</table>";
+    div.innerHTML = html;
+    container.appendChild(div);
+  });
+}
+
+</script>
+
+</body>
+</html>
