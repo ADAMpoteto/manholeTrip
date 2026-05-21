@@ -134,6 +134,23 @@ tbody tr:hover td{background:var(--bg2);}
 .addr-link{font-size:11px;color:#1a4db0;text-decoration:underline;}
 .addr-link:hover{color:#0f2d6e;}
 
+/* TRIP CARD LIST (スマホ用) */
+.trip-card-list{display:none;}
+.trip-card{padding:10px 0;border-bottom:.5px solid var(--border);}
+.trip-card:last-child{border-bottom:none;}
+.trip-card.done-card{opacity:.55;}
+.trip-card-row1{display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap;}
+.trip-card-no{font-size:10px;color:var(--text3);min-width:18px;}
+.trip-card-time{font-size:11px;color:var(--text2);}
+.trip-card-dist{font-size:11px;color:var(--text3);}
+.trip-card-row2{font-size:13px;font-weight:600;margin-bottom:3px;padding-left:24px;}
+.trip-card-row2 a{color:#1a4db0;}
+.trip-card-row3{font-size:11px;color:var(--text2);padding-left:24px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+@media(max-width:600px){
+  #manhole .tbl-wrap{display:none;}
+  .trip-card-list{display:block;}
+}
+
 /* PROGRESS */
 .tab-bar{display:flex;gap:2px;margin-bottom:18px;border-bottom:.5px solid var(--border);overflow-x:auto;scrollbar-width:none;}
 .tab-bar::-webkit-scrollbar{display:none;}
@@ -479,6 +496,23 @@ function renderTrip(name){
           </tr>`).join("")}
         </tbody>
       </table></div>
+      <div class="trip-card-list">${day.map((i,i2)=>`
+        <div class="trip-card${i.done?" done-card":""}">
+          <div class="trip-card-row1">
+            <span class="trip-card-no">${i2+1}</span>
+            ${i.done?"<span class=\"done-pill\">済</span>":""}
+            ${i.city?`<span style="font-size:11px;color:var(--text2)">${i.city}</span>`:""}
+            ${i.departure||i.arrival?`<span class="trip-card-time">${i.departure}${i.departure&&i.arrival?" → ":""}${i.arrival}</span>`:""}
+            ${i.distance?`<span class="trip-card-dist">${i.distance}km</span>`:""}
+          </div>
+          <div class="trip-card-row2">${i.url?`<a href="${i.url}" target="_blank">${i.title}</a>`:i.title}</div>
+          <div class="trip-card-row3">
+            ${i.time?`<span>🕐 ${i.time}</span>`:""}
+            ${i.address?`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(i.address)}" target="_blank" class="addr-link">📍 ${i.address}</a>`:""}
+            ${i.mhUrl?`<a href="${i.mhUrl}" target="_blank" class="ext-link">GKP ↗</a>`:""}
+          </div>
+        </div>`).join("")}
+      </div>
     </div>`).join("");
 }
 
