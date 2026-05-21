@@ -19,9 +19,10 @@ a{color:inherit;text-decoration:none;}
 button{font-family:inherit;}
 
 /* NAV */
-nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.93);backdrop-filter:blur(12px);border-bottom:.5px solid var(--border);display:flex;align-items:center;padding:0 16px;height:50px;gap:0;}
-.nav-brand{font-size:11px;font-weight:700;margin-right:16px;white-space:nowrap;flex-shrink:0;}
-.nav-links{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;}
+nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.93);backdrop-filter:blur(12px);border-bottom:.5px solid var(--border);padding:0 16px;}
+.nav-top{display:flex;justify-content:flex-start;padding:8px 0 4px;}
+.nav-brand{font-size:11px;font-weight:700;white-space:nowrap;}
+.nav-links{display:flex;justify-content:center;gap:2px;overflow-x:auto;scrollbar-width:none;padding-bottom:6px;}
 .nav-links::-webkit-scrollbar{display:none;}
 .nav-btn{font-size:12px;padding:5px 10px;border-radius:var(--r);border:none;background:none;color:var(--text2);cursor:pointer;white-space:nowrap;transition:background .12s,color .12s;}
 .nav-btn:hover{background:var(--bg2);color:var(--text);}
@@ -176,7 +177,9 @@ tbody tr:hover td{background:var(--bg2);}
 <body>
 
 <nav>
-  <div class="nav-brand">ﾏﾝﾎｰﾙ二郎ﾛｰﾄﾞ食べﾛｸﾞ釣りﾏﾗｿﾝ部</div>
+  <div class="nav-top">
+    <div class="nav-brand">ﾏﾝﾎｰﾙ二郎ﾛｰﾄﾞ食べﾛｸﾞ釣りﾏﾗｿﾝ部</div>
+  </div>
   <div class="nav-links">
     <button class="nav-btn active" onclick="goto('top')">トップ</button>
     <button class="nav-btn" onclick="goto('activities')">活動記録</button>
