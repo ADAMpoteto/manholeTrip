@@ -21,7 +21,8 @@ button{font-family:inherit;}
 /* NAV */
 nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.93);backdrop-filter:blur(12px);border-bottom:.5px solid var(--border);padding:0 16px;}
 .nav-top{display:flex;justify-content:flex-start;padding:8px 0 4px;}
-.nav-brand{font-size:11px;font-weight:700;white-space:nowrap;}
+.nav-brand{font-size:11px;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:6px;}
+.nav-brand img{width:24px;height:24px;border-radius:4px;flex-shrink:0;}
 .nav-links{display:flex;justify-content:center;gap:2px;overflow-x:auto;scrollbar-width:none;padding-bottom:6px;}
 .nav-links::-webkit-scrollbar{display:none;}
 .nav-btn{font-size:12px;padding:5px 10px;border-radius:var(--r);border:none;background:none;color:var(--text2);cursor:pointer;white-space:nowrap;transition:background .12s,color .12s;}
@@ -52,7 +53,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.93);backdrop-
 
 /* TOP */
 .hero{padding:36px 0 32px;border-bottom:.5px solid var(--border);margin-bottom:28px;}
-.hero-title{font-size:22px;font-weight:700;line-height:1.4;margin-bottom:6px;letter-spacing:-.02em;}
+.hero-title{font-size:22px;font-weight:800;line-height:1.4;margin-bottom:6px;letter-spacing:-.02em;}
 .hero-sub{font-size:13px;color:var(--text2);}
 .kpi-row{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:28px;}
 .kpi-row-act{margin-bottom:8px;}
@@ -69,7 +70,8 @@ nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.93);backdrop-
 .rec-row:last-child{border-bottom:none;}
 .rec-no{font-size:11px;color:var(--text3);text-align:right;}
 .rec-date{font-size:11px;color:var(--text2);}
-.rec-title{font-size:13px;min-width:0;}
+.rec-title{font-size:13px;font-weight:600;min-width:0;}
+.upcoming-title{font-size:13px;font-weight:600;min-width:0;}
 .rec-arrow{font-size:12px;color:var(--text3);cursor:pointer;border:none;background:none;white-space:nowrap;}
 .rec-arrow:hover{color:var(--text);}
 
@@ -84,8 +86,8 @@ nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.93);backdrop-
 table{width:100%;border-collapse:collapse;min-width:460px;}
 .act-table{table-layout:auto;}
 .act-table .title-cell{white-space:normal;word-break:break-all;}
-th{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);padding:7px 8px;border-bottom:.5px solid var(--border);text-align:left;white-space:nowrap;}
-td{padding:9px 8px;border-bottom:.5px solid var(--border);vertical-align:middle;}
+th{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);padding:7px 8px;border-bottom:.5px solid var(--border);text-align:left;white-space:nowrap;}
+td{padding:9px 8px;border-bottom:.5px solid var(--border);vertical-align:middle;font-weight:500;}
 tr:last-child td{border-bottom:none;}
 tbody tr:hover td{background:var(--bg2);}
 .det-btn{font-size:11px;color:var(--text3);background:none;border:.5px solid var(--border2);border-radius:var(--r);padding:3px 9px;cursor:pointer;}
@@ -100,7 +102,7 @@ tbody tr:hover td{background:var(--bg2);}
 .act-card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
 .act-card-no{font-size:10px;color:var(--text3);}
 .act-card-date{font-size:11px;color:var(--text2);}
-.act-card-title{font-size:13px;line-height:1.4;word-break:break-all;}
+.act-card-title{font-size:13px;font-weight:600;line-height:1.4;word-break:break-all;}
 .act-card-arrow{font-size:18px;color:var(--text3);flex-shrink:0;padding-left:4px;}
 @media(max-width:600px){
   #activities .tbl-wrap{display:none;}
@@ -111,7 +113,7 @@ tbody tr:hover td{background:var(--bg2);}
 .back-btn{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--text2);background:none;border:none;cursor:pointer;margin-bottom:20px;padding:0;}
 .back-btn:hover{color:var(--text);}
 .det-header{border-bottom:.5px solid var(--border);padding-bottom:18px;margin-bottom:20px;}
-.det-header h1{font-size:20px;font-weight:700;margin-bottom:8px;}
+.det-header h1{font-size:20px;font-weight:800;margin-bottom:8px;}
 .det-meta{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
 .det-meta span{font-size:12px;color:var(--text2);}
 .comment-box{background:var(--bg2);border-radius:var(--rl);padding:18px 20px;}
@@ -206,7 +208,7 @@ tbody tr:hover td{background:var(--bg2);}
 
 <nav>
   <div class="nav-top">
-    <div class="nav-brand">ﾏﾝﾎｰﾙ二郎ﾛｰﾄﾞ食べﾛｸﾞ釣りﾏﾗｿﾝ部</div>
+    <div class="nav-brand"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAVkAAAHaCAIAAAAltK36AADuWUlEQVR4nOy9d5wc53HnXVXP83T3pE3IIEEEBhAgwUyKOYliUKJkSrIly69kWw5ny7JP9sk+pwu+8/lsn33n7LNOlm1ZWaJkiSLFIIpJzJlEIAgQOSywaWJ3P89T9f7RM7OLwLCLXczuYr+f+SwXy92Z6p7p6nrqqfoVigjMMcccJzzUaQPmmGOOacGcL5hjjjkA5nzBHHPMkTHnC+aYYw6AOV8wxxxzZOhOGzDHHJ3kzO6+BT3dJy1ddvKypUsXnzR/fl9PqSeKAhGsJ/WhoZG9+/fs2b1v956dB/oHRhq1lwb6O23yVIFze4pznGicvnDeqaeuPOuss1adfMp5K8/oyRd7e3tL+YJSSjx777OLQimllBKEJEnKtWq1Wq2m6bObNm7c+upLL788sGPHK3sP9Hc6lMlkzhdMcZJw1sIZp55+y0033LDurEWTY4uXLD75mAVLl1bnTx43c25BqQSABQCqBwSAWkDo5qkGW91MZzpx4rW9e/cfOLB1+x+efuqFZ556+uXTZ077Ef/Mn/3XTQpPRPEBaM0cZi5oRBw0kMn6dpM1EZ9+bctX/7vP/TJC0YMAqAgaAWgCisMPbIRGQDUFIYCUjI7gDXNKEFOCqEQoKwBN3iQAAAAA... alt="icon">ﾏﾝﾎｰﾙ二郎ﾛｰﾄﾞ食べﾛｸﾞ釣りﾏﾗｿﾝ部</div>
   </div>
   <div class="nav-links">
     <button class="nav-btn active" onclick="goto('top')">トップ</button>
@@ -624,7 +626,6 @@ function renderArea(){
       <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;padding-bottom:6px;border-bottom:.5px solid var(--border);">
         <span style="font-size:11px;color:var(--text3);min-width:20px">${i+1}</span>
         <span style="font-size:15px;font-weight:700">${a.name}</span>
-        <span style="font-size:11px;color:var(--text3)">${a.name}</span>
       </div>
       <div style="padding-left:30px">${memberBarsHtml(a.members)}</div>
     </div>`).join("");
