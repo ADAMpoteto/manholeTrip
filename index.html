@@ -84,6 +84,16 @@ nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.93);backdrop-
 table{width:100%;border-collapse:collapse;min-width:460px;}
 .act-table{table-layout:auto;}
 .act-table .title-cell{white-space:normal;word-break:break-all;}
+
+/* ACT CARD (スマホ) */
+.act-card{padding:12px 0;border-bottom:.5px solid var(--border);}
+.act-card:last-child{border-bottom:none;}
+.act-card-top{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.act-card-date{font-size:11px;color:var(--text2);white-space:nowrap;}
+.act-card-body{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.act-card-title{font-size:13px;flex:1;line-height:1.5;}
+@media(max-width:599px){.act-tbl-wrap{display:none;}.act-cards{display:block;}}
+@media(min-width:600px){.act-tbl-wrap{display:block;}.act-cards{display:none;}}
 th{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);padding:7px 8px;border-bottom:.5px solid var(--border);text-align:left;white-space:nowrap;}
 td{padding:9px 8px;border-bottom:.5px solid var(--border);vertical-align:middle;}
 tr:last-child td{border-bottom:none;}
@@ -223,7 +233,7 @@ tbody tr:hover td{background:var(--bg2);}
   <div class="filter-bar" id="filter-bar">
     <button class="filter-btn active" onclick="filterAct('all',this)">すべて</button>
   </div>
-  <div class="tbl-wrap">
+  <div class="act-tbl-wrap tbl-wrap">
     <table class="act-table">
       <thead><tr>
         <th style="width:40px">No</th>
@@ -235,6 +245,7 @@ tbody tr:hover td{background:var(--bg2);}
       <tbody id="act-tbody"><tr><td colspan="5" class="loading">読み込み中…</td></tr></tbody>
     </table>
   </div>
+  <div class="act-cards" id="act-cards"><div class="loading">読み込み中…</div></div>
 </div>
 </div>
 
@@ -319,13 +330,17 @@ const URL_MH   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRayAxX6Aex3K-
 
 let activities=[], trips={}, mhData=[];
 
-function goto(page){
+function goto(page, pushState=true){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById(page).classList.add("active");
   const lbl={top:"トップ",activities:"活動記録",manhole:"旅程",progress:"収集進捗",rules:"旅行規程",detail:"活動記録"};
   document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.textContent.trim()===lbl[page]));
   window.scrollTo(0,0);
+  if(pushState) history.pushState({page}, "", "#"+page);
 }
+window.addEventListener("popstate", e=>{
+  if(e.state&&e.state.page) goto(e.state.page, false);
+});
 
 function badgeCls(c){return({二郎:"b-jiro",マンホールカード:"b-mh",ロード:"b-road",食事:"b-meal",結婚式:"b-wedding"})[c]||"b-other";}
 function mkBadge(c){return`<span class="badge ${badgeCls(c)}">${c}</span>`;}
@@ -374,6 +389,7 @@ function filterAct(cat,btn){
 }
 function renderActTable(filter){
   const list=filter==="all"?activities:activities.filter(a=>a.cat===filter);
+  // テーブル（PC）
   document.getElementById("act-tbody").innerHTML=list.map(a=>`
     <tr>
       <td style="color:var(--text3);font-size:11px">${a.no}</td>
@@ -382,6 +398,18 @@ function renderActTable(filter){
       <td class="title-cell">${a.title}</td>
       <td><button class="det-btn" onclick="showDetail(${a.no})">詳細</button></td>
     </tr>`).join("")||"<tr><td colspan=\"5\" style=\"padding:20px;color:var(--text3);text-align:center\">該当なし</td></tr>";
+  // カード（スマホ）
+  document.getElementById("act-cards").innerHTML=list.map(a=>`
+    <div class="act-card">
+      <div class="act-card-top">
+        <span class="act-card-date">${a.date}</span>
+        ${mkBadge(a.cat)}
+      </div>
+      <div class="act-card-body">
+        <span class="act-card-title">${a.title}</span>
+        <button class="det-btn" onclick="showDetail(${a.no})">詳細</button>
+      </div>
+    </div>`).join("")||"<div style=\"padding:20px;color:var(--text3);text-align:center\">該当なし</div>";
 }
 function showDetail(no){
   const a=activities.find(x=>x.no===no); if(!a) return;
