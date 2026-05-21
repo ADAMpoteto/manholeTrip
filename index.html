@@ -41,7 +41,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.93);backdrop-
 .page-header p{font-size:12px;color:var(--text2);}
 
 /* BADGES */
-.badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;white-space:nowrap;flex-shrink:0;}
+.badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;white-space:nowrap;flex-shrink:0;min-width:90px;text-align:center;display:inline-block;}
 .b-jiro   {background:#fdeee8;color:#b03a1a;}
 .b-mh     {background:#e8f0fd;color:#1a4db0;}
 .b-road   {background:#e8fde8;color:#1a7a1a;}
@@ -61,12 +61,13 @@ nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.93);backdrop-
 .kpi-unit{font-size:11px;color:var(--text2);font-weight:400;}
 
 /* RECENT ROWS */
-.rec-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:.5px solid var(--border);}
+.rec-row{display:grid;grid-template-columns:26px 90px 110px 1fr auto;align-items:center;gap:8px;padding:10px 0;border-bottom:.5px solid var(--border);}
+.rec-badge{display:flex;justify-content:center;}
 .rec-row:last-child{border-bottom:none;}
-.rec-no{font-size:11px;color:var(--text3);min-width:18px;text-align:right;}
-.rec-date{font-size:11px;color:var(--text2);min-width:76px;}
-.rec-title{font-size:13px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.rec-arrow{font-size:12px;color:var(--text3);cursor:pointer;border:none;background:none;flex-shrink:0;}
+.rec-no{font-size:11px;color:var(--text3);text-align:right;}
+.rec-date{font-size:11px;color:var(--text2);}
+.rec-title{font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rec-arrow{font-size:12px;color:var(--text3);cursor:pointer;border:none;background:none;white-space:nowrap;}
 .rec-arrow:hover{color:var(--text);}
 
 /* FILTER BAR */
@@ -75,9 +76,10 @@ nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.93);backdrop-
 .filter-btn:hover{background:var(--bg2);color:var(--text);}
 .filter-btn.active{background:var(--text);color:#fff;border-color:var(--text);}
 
-/* TABLE */
+.act-table td.badge-cell{text-align:center;}
 .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 table{width:100%;border-collapse:collapse;min-width:460px;}
+.act-table{table-layout:fixed;}
 th{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);padding:7px 8px;border-bottom:.5px solid var(--border);text-align:left;white-space:nowrap;}
 td{padding:9px 8px;border-bottom:.5px solid var(--border);vertical-align:middle;}
 tr:last-child td{border-bottom:none;}
@@ -138,8 +140,8 @@ tbody tr:hover td{background:var(--bg2);}
 .rank-sub{font-size:11px;color:var(--text3);}
 .member-pills{display:flex;gap:4px;flex-wrap:wrap;}
 .mpill{font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;}
-.mpill-w{background:#111;color:#fff;}
-.mpill-m{background:#e8f0fd;color:#1a4db0;}
+.mpill-w{background:#e8f0fd;color:#1a4db0;}
+.mpill-m{background:#e8fde8;color:#1a7a1a;}
 .mpill-k{background:#fdeee8;color:#b03a1a;}
 
 /* MEMBER TAB */
@@ -188,7 +190,7 @@ tbody tr:hover td{background:var(--bg2);}
 <div id="top" class="page active">
 <div class="container">
   <div class="hero">
-    <div class="hero-title">マンホール二郎ロード<br>食べログ釣りマラソン部</div>
+    <div class="hero-title">ﾏﾝﾎｰﾙ二郎ﾛｰﾄﾞ食べﾛｸﾞ釣りﾏﾗｿﾝ部</div>
     <div class="hero-sub">西川・小林・森角 — 三人の活動記録</div>
   </div>
   <div class="sec-label">サマリー</div>
@@ -207,17 +209,18 @@ tbody tr:hover td{background:var(--bg2);}
 <div id="activities" class="page">
 <div class="container">
   <div class="page-header"><h1>活動記録</h1><p>三人で行った活動の一覧</p></div>
-  <div class="filter-bar">
+  <div class="filter-bar" id="filter-bar">
     <button class="filter-btn active" onclick="filterAct('all',this)">すべて</button>
-    <button class="filter-btn" onclick="filterAct('二郎',this)">二郎</button>
-    <button class="filter-btn" onclick="filterAct('マンホールカード',this)">マンホールカード</button>
-    <button class="filter-btn" onclick="filterAct('ロード',this)">ロード</button>
-    <button class="filter-btn" onclick="filterAct('食事',this)">食事</button>
-    <button class="filter-btn" onclick="filterAct('other',this)">その他</button>
   </div>
   <div class="tbl-wrap">
-    <table>
-      <thead><tr><th>No</th><th>日付</th><th>分類</th><th>活動内容</th><th></th></tr></thead>
+    <table class="act-table">
+      <thead><tr>
+        <th style="width:40px">No</th>
+        <th style="width:96px">日付</th>
+        <th style="width:110px">分類</th>
+        <th>活動内容</th>
+        <th style="width:56px"></th>
+      </tr></thead>
       <tbody id="act-tbody"><tr><td colspan="5" class="loading">読み込み中…</td></tr></tbody>
     </table>
   </div>
@@ -261,7 +264,7 @@ tbody tr:hover td{background:var(--bg2);}
   <div class="sort-bar">
     <span style="font-size:11px;color:var(--text3)">並び順</span>
     <button class="sort-btn active" onclick="setSort('sum',this)">取得数が多い順</button>
-    <button class="sort-btn" onclick="setSort('name',this)">エリア・都道府県順</button>
+    <button class="sort-btn" onclick="setSort('name',this)">都道府県順</button>
   </div>
   <div id="tab-area"></div>
   <div id="tab-pref" style="display:none"></div>
@@ -331,6 +334,16 @@ async function loadActivity(){
     title:d["活動内容"]||"",comment:d["コメント"]||""
   }));
   document.getElementById("kpi-act").innerHTML=activities.length+"<span class=\"kpi-unit\"> 回</span>";
+  // フィルターボタン動的生成（出現順・重複なし）
+  const cats=[...new Set(activities.map(a=>a.cat).filter(Boolean))];
+  const bar=document.getElementById("filter-bar");
+  cats.forEach(cat=>{
+    const btn=document.createElement("button");
+    btn.className="filter-btn";
+    btn.textContent=cat;
+    btn.onclick=function(){filterAct(cat,this);};
+    bar.appendChild(btn);
+  });
   renderTop(); renderActTable("all");
 }
 function renderTop(){
@@ -339,7 +352,7 @@ function renderTop(){
     <div class="rec-row">
       <span class="rec-no">${a.no}</span>
       <span class="rec-date">${a.date}</span>
-      ${mkBadge(a.cat)}
+      <div class="rec-badge">${mkBadge(a.cat)}</div>
       <span class="rec-title">${a.title}</span>
       <button class="rec-arrow" onclick="showDetail(${a.no})">詳細 →</button>
     </div>`).join("");
@@ -350,12 +363,12 @@ function filterAct(cat,btn){
   btn.classList.add("active"); renderActTable(cat);
 }
 function renderActTable(filter){
-  const list=filter==="all"?activities:filter==="other"?activities.filter(a=>!mainCats.includes(a.cat)):activities.filter(a=>a.cat===filter);
+  const list=filter==="all"?activities:activities.filter(a=>a.cat===filter);
   document.getElementById("act-tbody").innerHTML=list.map(a=>`
     <tr>
       <td style="color:var(--text3);font-size:11px">${a.no}</td>
       <td style="font-size:11px;color:var(--text2);white-space:nowrap">${a.date}</td>
-      <td>${mkBadge(a.cat)}</td>
+      <td class="badge-cell">${mkBadge(a.cat)}</td>
       <td>${a.title}</td>
       <td><button class="det-btn" onclick="showDetail(${a.no})">詳細</button></td>
     </tr>`).join("")||"<tr><td colspan=\"5\" style=\"padding:20px;color:var(--text3);text-align:center\">該当なし</td></tr>";
@@ -446,7 +459,17 @@ async function loadMH(){
 }
 
 const AREAS=["北海道","東北","関東","中部","北陸","近畿","中国","四国","九州"];
-const MEMBERS=[{name:"西川",key:"w",col:"#111",pillCls:"mpill-w"},{name:"森角",key:"m",col:"#1a4db0",pillCls:"mpill-m"},{name:"小林",key:"k",col:"#b03a1a",pillCls:"mpill-k"}];
+const PREF_CODE={
+  "北海道":1,"青森":2,"岩手":3,"宮城":4,"秋田":5,"山形":6,"福島":7,
+  "茨城":8,"栃木":9,"群馬":10,"埼玉":11,"千葉":12,"東京":13,"神奈川":14,
+  "新潟":15,"富山":16,"石川":17,"福井":18,"山梨":19,"長野":20,
+  "岐阜":21,"静岡":22,"愛知":23,"三重":24,
+  "滋賀":25,"京都":26,"大阪":27,"兵庫":28,"奈良":29,"和歌山":30,
+  "鳥取":31,"島根":32,"岡山":33,"広島":34,"山口":35,
+  "徳島":36,"香川":37,"愛媛":38,"高知":39,
+  "福岡":40,"佐賀":41,"長崎":42,"熊本":43,"大分":44,"宮崎":45,"鹿児島":46,"沖縄":47
+};
+const MEMBERS=[{name:"西川",key:"w",col:"#1a4db0",pillCls:"mpill-w"},{name:"森角",key:"m",col:"#1a7a1a",pillCls:"mpill-m"},{name:"小林",key:"k",col:"#b03a1a",pillCls:"mpill-k"}];
 
 let currentTab="area";
 let currentSort="sum"; // "sum" | "name"
@@ -458,13 +481,13 @@ function setSort(mode,btn){
   renderTab(currentTab);
 }
 
-function memberBarsHtml(members,maxV){
+function memberBarsHtml(members){
   const sorted=[...members].sort((a,b)=>b.cnt-a.cnt);
   return sorted.map(({name,cnt,col,pillCls,groupTotal})=>`
     <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:.5px solid var(--border);">
       <span class="mpill ${pillCls}" style="min-width:36px;text-align:center">${name}</span>
       <div class="rank-bar-bg" style="flex:1;min-width:40px">
-        <div class="rank-bar-fill" style="width:${maxV>0?Math.round(cnt/maxV*100):0}%;background:${col}"></div>
+        <div class="rank-bar-fill" style="width:${groupTotal>0?Math.round(cnt/groupTotal*100):0}%;background:${col}"></div>
       </div>
       <span style="font-size:12px;font-weight:700;min-width:28px;text-align:right">${cnt}</span>
       <span class="rank-sub">/ ${groupTotal}</span>
@@ -492,8 +515,7 @@ function renderArea(){
     const sub=mhData.filter(d=>d.area===area);
     const n=sub.length;
     const members=MEMBERS.map(mem=>({...mem,cnt:sub.filter(d=>d[mem.key]).length,groupTotal:n}));
-    const topCnt=Math.max(...members.map(m=>m.cnt),1);
-    return{name:area,total:n,members,topCnt,sum:members.reduce((s,m)=>s+m.cnt,0)};
+    return{name:area,total:n,members,sum:members.reduce((s,m)=>s+m.cnt,0)};
   });
   const sorted= currentSort==="name"
     ? [...areaData] // ARRYSの順（北海道〜九州）そのまま
@@ -506,7 +528,7 @@ function renderArea(){
         <span style="font-size:15px;font-weight:700">${a.name}</span>
         <span style="font-size:11px;color:var(--text3)">${a.total} 枚中</span>
       </div>
-      <div style="padding-left:30px">${memberBarsHtml(a.members,a.topCnt)}</div>
+      <div style="padding-left:30px">${memberBarsHtml(a.members)}</div>
     </div>`).join("");
 }
 
@@ -522,13 +544,12 @@ function renderPref(){
   });
   const prefData=Object.values(prefMap).map(p=>{
     const members=MEMBERS.map(mem=>({...mem,cnt:p[mem.key],groupTotal:p.total}));
-    const topCnt=Math.max(...members.map(m=>m.cnt),1);
-    return{...p,members,topCnt,sum:members.reduce((s,m)=>s+m.cnt,0)};
+    return{...p,members,sum:members.reduce((s,m)=>s+m.cnt,0)};
   });
   const sorted= currentSort==="name"
-    ? [...prefData].sort((a,b)=>{ // エリア順→都道府県名順
-        const ai=AREAS.indexOf(a.area), bi=AREAS.indexOf(b.area);
-        return ai!==bi ? ai-bi : a.pref.localeCompare(b.pref,"ja");
+    ? [...prefData].sort((a,b)=>{ // 都道府県コード順
+        const ac=PREF_CODE[a.pref]||99, bc=PREF_CODE[b.pref]||99;
+        return ac-bc;
       })
     : [...prefData].sort((a,b)=>b.sum-a.sum);
 
@@ -539,7 +560,7 @@ function renderPref(){
         <span style="font-size:15px;font-weight:700">${p.pref}</span>
         <span style="font-size:11px;color:var(--text3)">${p.area} ／ ${p.total} 枚中</span>
       </div>
-      <div style="padding-left:30px">${memberBarsHtml(p.members,p.topCnt)}</div>
+      <div style="padding-left:30px">${memberBarsHtml(p.members)}</div>
     </div>`).join("");
 }
 
@@ -553,6 +574,7 @@ function switchTab(tab,btn){
   renderTab(tab);
 }
 
+loadActivity(); loadTrip(); loadMH();
 </script>
 </body>
 </html>
