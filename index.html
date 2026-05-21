@@ -54,20 +54,22 @@ nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.93);backdrop-
 .hero{padding:36px 0 32px;border-bottom:.5px solid var(--border);margin-bottom:28px;}
 .hero-title{font-size:22px;font-weight:700;line-height:1.4;margin-bottom:6px;letter-spacing:-.02em;}
 .hero-sub{font-size:13px;color:var(--text2);}
-.kpi-row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:28px;}
-@media(min-width:480px){.kpi-row{grid-template-columns:repeat(4,1fr);}}
+.kpi-row{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:28px;}
+.kpi-row-act{margin-bottom:8px;}
+.kpi-row-members{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+@media(min-width:480px){.kpi-row-members{grid-template-columns:repeat(3,1fr);}}
 .kpi-card{background:var(--bg2);border-radius:var(--rl);padding:14px;}
 .kpi-label{font-size:9px;color:var(--text3);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;}
 .kpi-val{font-size:22px;font-weight:700;letter-spacing:-.02em;}
 .kpi-unit{font-size:11px;color:var(--text2);font-weight:400;}
 
 /* RECENT ROWS */
-.rec-row{display:grid;grid-template-columns:26px 90px 110px 1fr auto;align-items:center;gap:8px;padding:10px 0;border-bottom:.5px solid var(--border);}
+.rec-row{display:grid;grid-template-columns:90px 110px 1fr auto;align-items:start;gap:8px;padding:10px 0;border-bottom:.5px solid var(--border);}
 .rec-badge{display:flex;justify-content:center;}
 .rec-row:last-child{border-bottom:none;}
 .rec-no{font-size:11px;color:var(--text3);text-align:right;}
 .rec-date{font-size:11px;color:var(--text2);}
-.rec-title{font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rec-title{font-size:13px;min-width:0;}
 .rec-arrow{font-size:12px;color:var(--text3);cursor:pointer;border:none;background:none;white-space:nowrap;}
 .rec-arrow:hover{color:var(--text);}
 
@@ -80,7 +82,8 @@ nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.93);backdrop-
 .act-table td.badge-cell{text-align:center;}
 .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 table{width:100%;border-collapse:collapse;min-width:460px;}
-.act-table{table-layout:fixed;}
+.act-table{table-layout:auto;}
+.act-table .title-cell{white-space:normal;word-break:break-all;}
 th{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);padding:7px 8px;border-bottom:.5px solid var(--border);text-align:left;white-space:nowrap;}
 td{padding:9px 8px;border-bottom:.5px solid var(--border);vertical-align:middle;}
 tr:last-child td{border-bottom:none;}
@@ -112,6 +115,8 @@ tbody tr:hover td{background:var(--bg2);}
 .done-pill{font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:#e8fde8;color:#1a7a1a;}
 .ext-link{font-size:12px;color:var(--text2);}
 .ext-link:hover{color:var(--text);}
+.addr-link{font-size:11px;color:#1a4db0;text-decoration:underline;}
+.addr-link:hover{color:#0f2d6e;}
 
 /* PROGRESS */
 .tab-bar{display:flex;gap:2px;margin-bottom:18px;border-bottom:.5px solid var(--border);overflow-x:auto;scrollbar-width:none;}
@@ -194,16 +199,19 @@ tbody tr:hover td{background:var(--bg2);}
 <div class="container">
   <div class="hero">
     <div class="hero-title">ﾏﾝﾎｰﾙ二郎ﾛｰﾄﾞ食べﾛｸﾞ釣りﾏﾗｿﾝ部</div>
-    <div class="hero-sub">西川・小林・森角 — 三人の活動記録</div>
   </div>
   <div class="sec-label">サマリー</div>
   <div class="kpi-row">
-    <div class="kpi-card"><div class="kpi-label">活動回数</div><div class="kpi-val" id="kpi-act">—<span class="kpi-unit"> 回</span></div></div>
-    <div class="kpi-card"><div class="kpi-label">西川 取得</div><div class="kpi-val" id="kpi-w">—<span class="kpi-unit"> 枚</span></div></div>
-    <div class="kpi-card"><div class="kpi-label">森角 取得</div><div class="kpi-val" id="kpi-m">—<span class="kpi-unit"> 枚</span></div></div>
-    <div class="kpi-card"><div class="kpi-label">小林 取得</div><div class="kpi-val" id="kpi-k">—<span class="kpi-unit"> 枚</span></div></div>
+    <div class="kpi-row-act">
+      <div class="kpi-card"><div class="kpi-label">活動回数</div><div class="kpi-val" id="kpi-act">—<span class="kpi-unit"> 回</span></div></div>
+    </div>
+    <div class="kpi-row-members">
+      <div class="kpi-card"><div class="kpi-label">西川</div><div class="kpi-val" id="kpi-w">—<span class="kpi-unit"> 枚</span></div></div>
+      <div class="kpi-card"><div class="kpi-label">森角</div><div class="kpi-val" id="kpi-m">—<span class="kpi-unit"> 枚</span></div></div>
+      <div class="kpi-card"><div class="kpi-label">小林</div><div class="kpi-val" id="kpi-k">—<span class="kpi-unit"> 枚</span></div></div>
+    </div>
   </div>
-  <div class="sec-label">最近の活動</div>
+  <div class="sec-label">直近の活動</div>
   <div id="top-recent"><div class="loading">読み込み中…</div></div>
 </div>
 </div>
@@ -211,7 +219,7 @@ tbody tr:hover td{background:var(--bg2);}
 <!-- ACTIVITIES -->
 <div id="activities" class="page">
 <div class="container">
-  <div class="page-header"><h1>活動記録</h1><p>三人で行った活動の一覧</p></div>
+  <div class="page-header"><h1>活動記録</h1></div>
   <div class="filter-bar" id="filter-bar">
     <button class="filter-btn active" onclick="filterAct('all',this)">すべて</button>
   </div>
@@ -248,7 +256,7 @@ tbody tr:hover td{background:var(--bg2);}
 <!-- MANHOLE TRIP -->
 <div id="manhole" class="page">
 <div class="container">
-  <div class="page-header"><h1>マンホールカード旅程</h1><p>スプレッドシートから自動読み込み</p></div>
+  <div class="page-header"><h1>マンホールカード旅程</h1></div>
   <div class="trip-selbox"><select id="trip-sel"><option>読み込み中…</option></select></div>
   <div class="trip-stats" id="trip-stats"></div>
   <div id="trip-days"><div class="loading">読み込み中…</div></div>
@@ -258,7 +266,7 @@ tbody tr:hover td{background:var(--bg2);}
 <!-- PROGRESS -->
 <div id="progress" class="page">
 <div class="container">
-  <div class="page-header"><h1>マンホールカード収集進捗</h1><p>スプレッドシートから自動読み込み</p></div>
+  <div class="page-header"><h1>マンホールカード収集進捗</h1></div>
   <div class="stats-row" id="prog-stats"><div class="loading">読み込み中…</div></div>
   <div class="tab-bar">
     <button class="tab-btn active" onclick="switchTab('area',this)">エリア別</button>
@@ -353,7 +361,6 @@ function renderTop(){
   const recent=[...activities].reverse().slice(0,5);
   document.getElementById("top-recent").innerHTML=recent.map(a=>`
     <div class="rec-row">
-      <span class="rec-no">${a.no}</span>
       <span class="rec-date">${a.date}</span>
       <div class="rec-badge">${mkBadge(a.cat)}</div>
       <span class="rec-title">${a.title}</span>
@@ -372,7 +379,7 @@ function renderActTable(filter){
       <td style="color:var(--text3);font-size:11px">${a.no}</td>
       <td style="font-size:11px;color:var(--text2);white-space:nowrap">${a.date}</td>
       <td class="badge-cell">${mkBadge(a.cat)}</td>
-      <td>${a.title}</td>
+      <td class="title-cell">${a.title}</td>
       <td><button class="det-btn" onclick="showDetail(${a.no})">詳細</button></td>
     </tr>`).join("")||"<tr><td colspan=\"5\" style=\"padding:20px;color:var(--text3);text-align:center\">該当なし</td></tr>";
 }
@@ -436,7 +443,7 @@ function renderTrip(name){
             <td style="font-size:12px">${i.city}</td>
             <td style="font-size:12px">${i.url?`<a href="${i.url}" target="_blank" style="color:#1a4db0">${i.title}</a>`:i.title}</td>
             <td style="font-size:11px;color:var(--text2);white-space:nowrap">${i.time}</td>
-            <td style="font-size:11px"><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(i.address)}" target="_blank" class="ext-link">${i.address}</a></td>
+            <td style="font-size:11px"><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(i.address)}" target="_blank" class="addr-link">${i.address}</a></td>
             <td>${i.mhUrl?`<a href="${i.mhUrl}" target="_blank" class="ext-link">↗</a>`:""}</td>
           </tr>`).join("")}
         </tbody>
@@ -529,7 +536,7 @@ function renderArea(){
       <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;padding-bottom:6px;border-bottom:.5px solid var(--border);">
         <span style="font-size:11px;color:var(--text3);min-width:20px">${i+1}</span>
         <span style="font-size:15px;font-weight:700">${a.name}</span>
-        <span style="font-size:11px;color:var(--text3)">${a.total} 枚中</span>
+        <span style="font-size:11px;color:var(--text3)">${a.name}</span>
       </div>
       <div style="padding-left:30px">${memberBarsHtml(a.members)}</div>
     </div>`).join("");
@@ -561,7 +568,7 @@ function renderPref(){
       <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;padding-bottom:6px;border-bottom:.5px solid var(--border);">
         <span style="font-size:11px;color:var(--text3);min-width:20px">${i+1}</span>
         <span style="font-size:15px;font-weight:700">${p.pref}</span>
-        <span style="font-size:11px;color:var(--text3)">${p.area} ／ ${p.total} 枚中</span>
+        <span style="font-size:11px;color:var(--text3)">${p.area}</span>
       </div>
       <div style="padding-left:30px">${memberBarsHtml(p.members)}</div>
     </div>`).join("");
