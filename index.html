@@ -141,6 +141,28 @@ tbody tr:hover td{background:var(--bg2);}
 .day-label{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text);margin-bottom:10px;padding:5px 10px;background:var(--text);color:#fff;border-radius:var(--r);display:inline-block;}
 .trip-tbl{min-width:660px;}
 .trip-tbl tr.done td{color:var(--text3);background:var(--bg2);}
+
+/* 旅程スマホカード */
+.trip-cards{display:none;}
+.trip-card{padding:12px 14px;border-bottom:.5px solid var(--border);border-left:3px solid transparent;}
+.trip-card.done{background:var(--bg2);border-left-color:var(--text3);}
+.trip-card:not(.done){border-left-color:#1a4db0;}
+.trip-card:last-child{border-bottom:none;}
+.trip-card-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.trip-card-no{font-size:10px;color:var(--text3);font-weight:700;min-width:20px;}
+.trip-card-title{font-size:14px;font-weight:800;flex:1;min-width:0;word-break:break-all;}
+.trip-card-done{font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:#e8fde8;color:#1a7a1a;}
+.trip-card-meta{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;font-size:11px;color:var(--text2);}
+.trip-card-meta-item{display:flex;gap:4px;align-items:baseline;}
+.trip-card-meta-label{color:var(--text3);font-weight:700;font-size:9px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;}
+.trip-card-meta-val{font-weight:600;word-break:break-all;}
+.trip-card-links{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+.trip-card-link{font-size:11px;color:#1a4db0;text-decoration:underline;font-weight:600;}
+
+@media(max-width:640px){
+  #manhole .tbl-wrap{display:none;}
+  .trip-cards{display:block;}
+}
 .done-pill{font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:#e8fde8;color:#1a7a1a;}
 .ext-link{font-size:12px;color:var(--text2);}
 .ext-link:hover{color:var(--text);}
@@ -541,7 +563,27 @@ function renderTrip(name){
           </tr>`).join("")}
         </tbody>
       </table></div>
-    </div>`).join("");
+      <div class="trip-cards">${day.map((i,i2)=>{
+        const metaItems=[
+          i.departure||i.arrival ? `<div class="trip-card-meta-item"><span class="trip-card-meta-label">出発</span><span class="trip-card-meta-val">${i.departure}</span></div><div class="trip-card-meta-item"><span class="trip-card-meta-label">到着</span><span class="trip-card-meta-val">${i.arrival}</span></div>` : '',
+          i.distance ? `<div class="trip-card-meta-item"><span class="trip-card-meta-label">距離</span><span class="trip-card-meta-val">${i.distance} km</span></div>` : '',
+          i.city ? `<div class="trip-card-meta-item"><span class="trip-card-meta-label">市区町村</span><span class="trip-card-meta-val">${i.city}</span></div>` : '',
+          i.time ? `<div class="trip-card-meta-item"><span class="trip-card-meta-label">営業時間</span><span class="trip-card-meta-val">${i.time}</span></div>` : '',
+        ].filter(Boolean).join('');
+        const links=[
+          i.address ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(i.address)}" target="_blank" class="trip-card-link">📍 地図</a>` : '',
+          i.mhUrl ? `<a href="${i.mhUrl}" target="_blank" class="trip-card-link">↗ カード</a>` : '',
+        ].filter(Boolean).join('');
+        return `<div class="trip-card${i.done?' done':''}">
+          <div class="trip-card-head">
+            <span class="trip-card-no">${i2+1}</span>
+            <span class="trip-card-title">${i.url?`<a href="${i.url}" target="_blank" style="color:#1a4db0">${i.title}</a>`:i.title}</span>
+            ${i.done?'<span class="trip-card-done">済</span>':''}
+          </div>
+          ${metaItems?`<div class="trip-card-meta">${metaItems}</div>`:''}
+          ${links?`<div class="trip-card-links">${links}</div>`:''}
+        </div>`;
+      }).join('')}</div>    </div>`).join("");
 }
 
 // MH DATA
