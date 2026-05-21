@@ -210,7 +210,7 @@ tbody tr:hover td{background:var(--bg2);}
   </div>
   <div class="nav-links">
     <button class="nav-btn active" onclick="goto('top')">トップ</button>
-    <button class="nav-btn" onclick="goto('activities')">活動記録</button>
+    <button class="nav-btn" onclick="goto('activities')">活動実績</button>
     <button class="nav-btn" onclick="goto('manhole')">旅程</button>
     <button class="nav-btn" onclick="goto('progress')">収集進捗</button>
     <button class="nav-btn" onclick="goto('rules')">旅行規程</button>
@@ -236,7 +236,7 @@ tbody tr:hover td{background:var(--bg2);}
   </div>
   <div class="sec-label" style="margin-top:28px">今後の活動予定</div>
   <div id="top-upcoming"><div class="loading">読み込み中…</div></div>
-  <div class="sec-label" style="margin-top:28px">直近の活動</div>
+  <div class="sec-label" style="margin-top:28px">直近の活動実績</div>
   <div id="top-recent"><div class="loading">読み込み中…</div></div>
 </div>
 </div>
@@ -244,7 +244,7 @@ tbody tr:hover td{background:var(--bg2);}
 <!-- ACTIVITIES -->
 <div id="activities" class="page">
 <div class="container">
-  <div class="page-header"><h1>活動記録</h1></div>
+  <div class="page-header"><h1>活動実績</h1></div>
   <div class="filter-bar" id="filter-bar">
     <button class="filter-btn active" onclick="filterAct('all',this)">すべて</button>
   </div>
@@ -267,7 +267,7 @@ tbody tr:hover td{background:var(--bg2);}
 <!-- DETAIL -->
 <div id="detail" class="page">
 <div class="container">
-  <button class="back-btn" onclick="goto('activities')">← 活動記録に戻る</button>
+  <button class="back-btn" onclick="goto('activities')">← 活動実績に戻る</button>
   <div class="det-header">
     <h1 id="det-title"></h1>
     <div class="det-meta"><span id="det-date"></span><span id="det-badge"></span></div>
@@ -348,7 +348,7 @@ let activities=[], trips={}, mhData=[];
 function goto(page){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById(page).classList.add("active");
-  const lbl={top:"トップ",activities:"活動記録",manhole:"旅程",progress:"収集進捗",rules:"旅行規程",detail:"活動記録"};
+  const lbl={top:"トップ",activities:"活動実績",manhole:"旅程",progress:"収集進捗",rules:"旅行規程",detail:"活動実績"};
   document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.textContent.trim()===lbl[page]));
   window.scrollTo(0,0);
 }
@@ -420,7 +420,7 @@ function renderTop(){
     document.getElementById("top-upcoming").innerHTML=`<div class="upcoming-empty">予定はありません</div>`;
   }
 
-  // 直近の活動（過去のみ、直近5件）
+  // 直近の活動実績（過去のみ、直近5件）
   const recent=activities.filter(a=>!isFuture(a.date)).reverse().slice(0,5);
   document.getElementById("top-recent").innerHTML=recent.map(a=>`
     <div class="rec-row">
