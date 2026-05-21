@@ -91,6 +91,22 @@ tbody tr:hover td{background:var(--bg2);}
 .det-btn{font-size:11px;color:var(--text3);background:none;border:.5px solid var(--border2);border-radius:var(--r);padding:3px 9px;cursor:pointer;}
 .det-btn:hover{color:var(--text);background:var(--bg2);}
 
+/* ACT CARD LIST (スマホ用) */
+.act-list{display:none;}
+.act-card{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:.5px solid var(--border);cursor:pointer;}
+.act-card:last-child{border-bottom:none;}
+.act-card:active{background:var(--bg2);}
+.act-card-left{display:flex;flex-direction:column;gap:5px;flex:1;min-width:0;}
+.act-card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.act-card-no{font-size:10px;color:var(--text3);}
+.act-card-date{font-size:11px;color:var(--text2);}
+.act-card-title{font-size:13px;line-height:1.4;word-break:break-all;}
+.act-card-arrow{font-size:18px;color:var(--text3);flex-shrink:0;padding-left:4px;}
+@media(max-width:600px){
+  .tbl-wrap{display:none;}
+  .act-list{display:block;}
+}
+
 /* DETAIL */
 .back-btn{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--text2);background:none;border:none;cursor:pointer;margin-bottom:20px;padding:0;}
 .back-btn:hover{color:var(--text);}
@@ -235,6 +251,7 @@ tbody tr:hover td{background:var(--bg2);}
       <tbody id="act-tbody"><tr><td colspan="5" class="loading">読み込み中…</td></tr></tbody>
     </table>
   </div>
+  <div class="act-list" id="act-list"></div>
 </div>
 </div>
 
@@ -267,7 +284,7 @@ tbody tr:hover td{background:var(--bg2);}
 <div id="progress" class="page">
 <div class="container">
   <div class="page-header"><h1>マンホールカード収集進捗</h1></div>
-  <div class="stats-row" id="prog-stats"><div class="loading">読み込み中…</div></div>
+  <div id="prog-stats" style="display:none"></div>
   <div class="tab-bar">
     <button class="tab-btn active" onclick="switchTab('area',this)">エリア別</button>
     <button class="tab-btn" onclick="switchTab('pref',this)">都道府県別</button>
@@ -384,6 +401,18 @@ function renderActTable(filter){
       <td class="title-cell">${a.title}</td>
       <td><button class="det-btn" onclick="showDetail(${a.no})">詳細</button></td>
     </tr>`).join("")||"<tr><td colspan=\"5\" style=\"padding:20px;color:var(--text3);text-align:center\">該当なし</td></tr>";
+  document.getElementById("act-list").innerHTML=sorted.map(a=>`
+    <div class="act-card" onclick="showDetail(${a.no})">
+      <div class="act-card-left">
+        <div class="act-card-meta">
+          <span class="act-card-no">No.${a.no}</span>
+          <span class="act-card-date">${a.date}</span>
+          ${mkBadge(a.cat)}
+        </div>
+        <div class="act-card-title">${a.title}</div>
+      </div>
+      <div class="act-card-arrow">›</div>
+    </div>`).join("")||"<div style=\"padding:20px;color:var(--text3);text-align:center\">該当なし</div>";
 }
 function showDetail(no){
   const a=activities.find(x=>x.no===no); if(!a) return;
