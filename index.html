@@ -301,6 +301,7 @@ tbody tr:hover td{background:var(--bg2);}
   <div class="det-header">
     <h1 id="det-title"></h1>
     <div class="det-meta"><span id="det-date"></span><span id="det-badge"></span></div>
+    <div class="det-meta" style="margin-top:6px;font-size:12px;color:var(--text2)" id="det-meta-extra"></div>
   </div>
   <div class="comment-box">
     <div class="comment-label">コメント</div>
@@ -456,7 +457,10 @@ function renderTop(){
     <div class="rec-row">
       <span class="rec-date">${a.date}</span>
       <div class="rec-badge">${mkBadge(a.cat)}</div>
-      <span class="rec-title">${a.title}</span>
+      <span class="rec-title">
+        ${a.title}
+        ${(a.driver||a.distance)?`<span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:6px">${[a.driver?'🚗'+a.driver:'',a.distance?a.distance+'km':''].filter(Boolean).join(' / ')}</span>`:''}
+      </span>
       <button class="rec-arrow" onclick="showDetail(${a.no})">詳細 →</button>
     </div>`).join("");
 }
@@ -506,6 +510,10 @@ function showDetail(no){
   document.getElementById("det-title").textContent=a.title;
   document.getElementById("det-date").textContent=a.date;
   document.getElementById("det-badge").innerHTML=mkBadge(a.cat);
+  const metas=[];
+  if(a.driver) metas.push(`<span>🚗 運転手：${a.driver}</span>`);
+  if(a.distance) metas.push(`<span>📍 距離：${a.distance} km</span>`);
+  document.getElementById("det-meta-extra").innerHTML=metas.join('<span style="color:var(--border2);margin:0 6px">|</span>');
   document.getElementById("det-comment").textContent=a.comment||"（コメントは後で追加予定）";
   goto("detail");
 }
