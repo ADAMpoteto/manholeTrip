@@ -431,8 +431,10 @@ async function loadActivity(){
   activities=r.data.filter(d=>d.No&&/^\d+$/.test(d.No.trim())).map(d=>({
     no:Number(d.No),date:d["日付"]||"",cat:d["分類"]||"",
     title:d["活動内容"]||"",
-    driver:d["運転手"]||"",
-    distance:d["距離(km)"]||"",
+    distW:d["西川"]||"",
+    distM:d["森角"]||"",
+    distK:d["小林"]||"",
+    distBike:d["自転車"]||"",
     comment:d["コメント"]||""
   }));
 
@@ -450,16 +452,16 @@ async function loadActivity(){
   // 活動回数
   document.getElementById("kpi-act").innerHTML=pastActs.length+"<span class=\"kpi-unit\"> 回</span>";
 
-  // 運転回数・距離集計（名前の表記揺れに対応するため trim して比較）
+  // 運転回数・距離集計
   const MEMBERS_DRIVE = [
-    {name:"西川", driveId:"kpi-w-drive", distId:"kpi-w-dist"},
-    {name:"森角", driveId:"kpi-m-drive", distId:"kpi-m-dist"},
-    {name:"小林", driveId:"kpi-k-drive", distId:"kpi-k-dist"},
+    {name:"西川", key:"distW", driveId:"kpi-w-drive", distId:"kpi-w-dist"},
+    {name:"森角", key:"distM", driveId:"kpi-m-drive", distId:"kpi-m-dist"},
+    {name:"小林", key:"distK", driveId:"kpi-k-drive", distId:"kpi-k-dist"},
   ];
-  MEMBERS_DRIVE.forEach(({name, driveId, distId})=>{
-    const driven = pastActs.filter(a=>a.driver.trim()===name);
+  MEMBERS_DRIVE.forEach(({key, driveId, distId})=>{
+    const driven = pastActs.filter(a=>a[key]&&a[key].trim()!=="");
     const totalDist = driven.reduce((s,a)=>{
-      const v=parseFloat(a.distance); return s+(isNaN(v)?0:v);
+      const v=parseFloat(a[key]); return s+(isNaN(v)?0:v);
     },0);
     const driveEl=document.getElementById(driveId);
     const distEl=document.getElementById(distId);
@@ -507,8 +509,10 @@ function renderTop(){
   const recent=activities.filter(a=>!isFuture(a.date)).reverse().slice(0,5);
   document.getElementById("top-recent").innerHTML=recent.map(a=>{
     const subParts=[];
-    if(a.driver) subParts.push(`運転手：${a.driver}`);
-    if(a.distance) subParts.push(`距離：${a.distance}km`);
+    if(a.distW) subParts.push(`西川：${a.distW}km`);
+    if(a.distM) subParts.push(`森角：${a.distM}km`);
+    if(a.distK) subParts.push(`小林：${a.distK}km`);
+    if(a.distBike) subParts.push(`自転車：${a.distBike}km`);
     const subHtml=subParts.length
       ? `<div style="font-size:11px;color:var(--text3);font-weight:400;margin-top:2px">${subParts.join('　')}</div>`
       : '';
@@ -550,8 +554,10 @@ function renderActTable(filter){
 
   document.getElementById("act-list").innerHTML=sorted.map(a=>{
     const subParts=[];
-    if(a.driver) subParts.push(`運転手：${a.driver}`);
-    if(a.distance) subParts.push(`距離：${a.distance}km`);
+    if(a.distW) subParts.push(`西川：${a.distW}km`);
+    if(a.distM) subParts.push(`森角：${a.distM}km`);
+    if(a.distK) subParts.push(`小林：${a.distK}km`);
+    if(a.distBike) subParts.push(`自転車：${a.distBike}km`);
     return `
     <div class="act-card" onclick="showDetail(${a.no})">
       <div class="act-card-left">
@@ -574,14 +580,12 @@ function showDetail(no){
   document.getElementById("det-date").textContent=a.date;
   document.getElementById("det-badge").innerHTML=mkBadge(a.cat);
 
-  // 運転手・距離をinfoグリッドで表示
+  // 距離をinfoグリッドで表示
   const infoItems=[];
-  if(a.driver){
-    infoItems.push(`<div class="det-info-item"><div class="det-info-label">運転手</div><div class="det-info-val">${a.driver}</div></div>`);
-  }
-  if(a.distance){
-    infoItems.push(`<div class="det-info-item"><div class="det-info-label">距離</div><div class="det-info-val">${a.distance} km</div></div>`);
-  }
+  if(a.distW) infoItems.push(`<div class="det-info-item"><div class="det-info-label">西川</div><div class="det-info-val">${a.distW} km</div></div>`);
+  if(a.distM) infoItems.push(`<div class="det-info-item"><div class="det-info-label">森角</div><div class="det-info-val">${a.distM} km</div></div>`);
+  if(a.distK) infoItems.push(`<div class="det-info-item"><div class="det-info-label">小林</div><div class="det-info-val">${a.distK} km</div></div>`);
+  if(a.distBike) infoItems.push(`<div class="det-info-item"><div class="det-info-label">自転車</div><div class="det-info-val">${a.distBike} km</div></div>`);
   const grid=document.getElementById("det-info-grid");
   grid.innerHTML=infoItems.join("");
   grid.style.display=infoItems.length?"grid":"none";
