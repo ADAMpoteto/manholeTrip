@@ -63,14 +63,12 @@ nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.93);backdrop-
 
 /* KPI - メンバーカード */
 .kpi-members{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:32px;}
-.kpi-member-card{background:var(--bg2);border-radius:var(--rl);padding:14px 12px;border-left:3px solid var(--text);display:flex;flex-direction:column;}
-.kpi-member-name{font-size:10px;color:var(--text3);font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;}
-.kpi-member-row{display:flex;align-items:baseline;gap:4px;margin-bottom:4px;min-height:28px;}
-.kpi-member-label{font-size:10px;color:var(--text3);font-weight:700;min-width:36px;}
-.kpi-member-big{font-size:22px;font-weight:800;letter-spacing:-.03em;line-height:1;}
-.kpi-member-small{font-size:14px;font-weight:800;letter-spacing:-.02em;line-height:1;}
-.kpi-member-unit{font-size:10px;color:var(--text2);font-weight:400;margin-left:2px;}
-.kpi-member-divider{border:none;border-top:.5px solid var(--border);margin:8px 0;}
+.kpi-member-card{background:var(--bg2);border-radius:var(--rl);padding:12px 10px;border-left:3px solid var(--text);display:flex;flex-direction:column;gap:4px;}
+.kpi-member-name{font-size:10px;color:var(--text3);font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px;}
+.kpi-member-section-label{font-size:9px;color:var(--text3);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-top:4px;}
+.kpi-member-val{font-size:16px;font-weight:800;letter-spacing:-.02em;line-height:1.2;word-break:break-all;}
+.kpi-member-val .unit{font-size:10px;color:var(--text2);font-weight:400;margin-left:1px;}
+.kpi-member-divider{border:none;border-top:.5px solid var(--border);margin:4px 0;}
 
 /* RECENT ROWS */
 .rec-row{display:grid;grid-template-columns:90px 110px 1fr auto;align-items:center;gap:8px;padding:12px 10px;border-bottom:.5px solid var(--border);border-left:3px solid transparent;transition:border-color .12s,background .12s;}
@@ -268,62 +266,32 @@ tbody tr:hover td{background:var(--bg2);}
     <!-- 西川 -->
     <div class="kpi-member-card">
       <div class="kpi-member-name">西川</div>
-      <div class="kpi-member-row">
-        <span class="kpi-member-label">取得</span>
-        <span class="kpi-member-big" id="kpi-w">—</span>
-        <span class="kpi-member-unit">枚</span>
-      </div>
+      <div class="kpi-member-section-label">取得</div>
+      <div class="kpi-member-val" id="kpi-w">—<span class="unit">枚</span></div>
       <hr class="kpi-member-divider">
-      <div class="kpi-member-row">
-        <span class="kpi-member-label">運転</span>
-        <span class="kpi-member-small" id="kpi-w-drive">—</span>
-        <span class="kpi-member-unit">回</span>
-      </div>
-      <div class="kpi-member-row">
-        <span class="kpi-member-label">距離</span>
-        <span class="kpi-member-small" id="kpi-w-dist">—</span>
-        <span class="kpi-member-unit">km</span>
-      </div>
+      <div class="kpi-member-section-label">運転</div>
+      <div class="kpi-member-val" id="kpi-w-drive">—<span class="unit">回</span></div>
+      <div class="kpi-member-val" id="kpi-w-dist">—<span class="unit">km</span></div>
     </div>
     <!-- 森角 -->
     <div class="kpi-member-card">
       <div class="kpi-member-name">森角</div>
-      <div class="kpi-member-row">
-        <span class="kpi-member-label">取得</span>
-        <span class="kpi-member-big" id="kpi-m">—</span>
-        <span class="kpi-member-unit">枚</span>
-      </div>
+      <div class="kpi-member-section-label">取得</div>
+      <div class="kpi-member-val" id="kpi-m">—<span class="unit">枚</span></div>
       <hr class="kpi-member-divider">
-      <div class="kpi-member-row">
-        <span class="kpi-member-label">運転</span>
-        <span class="kpi-member-small" id="kpi-m-drive">—</span>
-        <span class="kpi-member-unit">回</span>
-      </div>
-      <div class="kpi-member-row">
-        <span class="kpi-member-label">距離</span>
-        <span class="kpi-member-small" id="kpi-m-dist">—</span>
-        <span class="kpi-member-unit">km</span>
-      </div>
+      <div class="kpi-member-section-label">運転</div>
+      <div class="kpi-member-val" id="kpi-m-drive">—<span class="unit">回</span></div>
+      <div class="kpi-member-val" id="kpi-m-dist">—<span class="unit">km</span></div>
     </div>
     <!-- 小林 -->
     <div class="kpi-member-card">
       <div class="kpi-member-name">小林</div>
-      <div class="kpi-member-row">
-        <span class="kpi-member-label">取得</span>
-        <span class="kpi-member-big" id="kpi-k">—</span>
-        <span class="kpi-member-unit">枚</span>
-      </div>
+      <div class="kpi-member-section-label">取得</div>
+      <div class="kpi-member-val" id="kpi-k">—<span class="unit">枚</span></div>
       <hr class="kpi-member-divider">
-      <div class="kpi-member-row">
-        <span class="kpi-member-label">運転</span>
-        <span class="kpi-member-small" id="kpi-k-drive">—</span>
-        <span class="kpi-member-unit">回</span>
-      </div>
-      <div class="kpi-member-row">
-        <span class="kpi-member-label">距離</span>
-        <span class="kpi-member-small" id="kpi-k-dist">—</span>
-        <span class="kpi-member-unit">km</span>
-      </div>
+      <div class="kpi-member-section-label">運転</div>
+      <div class="kpi-member-val" id="kpi-k-drive">—<span class="unit">回</span></div>
+      <div class="kpi-member-val" id="kpi-k-dist">—<span class="unit">km</span></div>
     </div>
   </div>
 
@@ -493,8 +461,10 @@ async function loadActivity(){
     const totalDist = driven.reduce((s,a)=>{
       const v=parseFloat(a.distance); return s+(isNaN(v)?0:v);
     },0);
-    document.getElementById(driveId).textContent=driven.length;
-    document.getElementById(distId).textContent=totalDist.toFixed(1);
+    const driveEl=document.getElementById(driveId);
+    const distEl=document.getElementById(distId);
+    driveEl.childNodes[0].textContent=driven.length;
+    distEl.childNodes[0].textContent=totalDist.toFixed(1);
   });
 
   // フィルターボタン
@@ -618,7 +588,8 @@ function showDetail(no){
 
   const commentEl=document.getElementById("det-comment");
   const raw=a.comment||"（コメントは後で追加予定）";
-  commentEl.innerHTML=raw.split("#").map(s=>s.trim()).filter(Boolean).map(s=>`<div>${s}</div>`).join("");
+  let first=true;
+  commentEl.innerHTML=raw.replace(/#/g,()=>{if(first){first=false;return '#';}return '<br>#';});
   goto("detail");
 }
 
@@ -712,9 +683,9 @@ async function loadMH(){
   }));
   renderProgress();
   const wc=mhData.filter(d=>d.w).length,mc=mhData.filter(d=>d.m).length,kc=mhData.filter(d=>d.k).length;
-  document.getElementById("kpi-w").textContent=wc;
-  document.getElementById("kpi-m").textContent=mc;
-  document.getElementById("kpi-k").textContent=kc;
+  document.getElementById("kpi-w").childNodes[0].textContent=wc;
+  document.getElementById("kpi-m").childNodes[0].textContent=mc;
+  document.getElementById("kpi-k").childNodes[0].textContent=kc;
 }
 
 const AREAS=["北海道","東北","関東","中部","北陸","近畿","中国","四国","九州"];
