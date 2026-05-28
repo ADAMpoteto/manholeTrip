@@ -761,6 +761,17 @@ function fmtArrive(s){
   return `${Number(m[1])}:${m[2]}`;
 }
 
+// "7:10:00" から 10分引いて "7:00" を返す。失敗時は元の時刻をそのまま返す
+function subtractMinutes(timeStr, minStr){
+  const m=(timeStr||"").match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+  const mins=parseInt(minStr,10);
+  if(!m || isNaN(mins)) return timeStr||"";
+  let total=Number(m[1])*60+Number(m[2])-mins;
+  if(total<0) total+=24*60;  // 日付跨ぎの保険
+  const h=Math.floor(total/60), mm=total%60;
+  return `${h}:${String(mm).padStart(2,"0")}`;
+}
+
 function renderCycle(){
   const rows=cycleData;
   if(!rows.length){
@@ -776,12 +787,13 @@ function renderCycle(){
   });
   const spots=rows.length - lunchCount;
   const lastArrive=fmtArrive(rows[rows.length-1].arrive);
-  const firstArrive=fmtArrive(rows[0].arrive);
+  // 出発時刻 = 最初の地点の到着時刻 − 最初の区間の所要時間（例: 7:10着 − 10分 = 7:00出発）
+  const startTime=fmtArrive(subtractMinutes(rows[0].arrive, rows[0].dur));
 
   document.getElementById("cycle-hero").innerHTML=`
     <div class="cycle-stat"><div class="cs-label">訪問先</div><div class="cs-val">${spots}<span class="cs-unit">校</span></div></div>
     <div class="cycle-stat"><div class="cs-label">総走行距離</div><div class="cs-val">${totalDist.toFixed(1)}<span class="cs-unit">km</span></div></div>
-    <div class="cycle-stat"><div class="cs-label">行程</div><div class="cs-val" style="font-size:18px">${firstArrive}<span class="cs-unit" style="margin:0 4px">→</span>${lastArrive}</div></div>`;
+    <div class="cycle-stat"><div class="cs-label">行程</div><div class="cs-val" style="font-size:18px">${startTime}<span class="cs-unit" style="margin:0 4px">→</span>${lastArrive}</div></div>`;
 
   // PC: テーブル
   const tbl=`
