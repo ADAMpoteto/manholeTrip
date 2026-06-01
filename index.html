@@ -564,15 +564,18 @@ function renderTop(){
     if(a.distM) subParts.push(`森角：${a.distM}km`);
     if(a.distK) subParts.push(`小林：${a.distK}km`);
     if(a.distBike) subParts.push(`自転車：${a.distBike}km`);
-    const subHtml=subParts.length
-      ? `<div style="font-size:11px;color:var(--text3);font-weight:400;margin-top:2px">${subParts.join('　')}</div>`
-      : '';
     return `
-    <div class="rec-row">
-      <span class="rec-date">${a.date}</span>
-      <div class="rec-badge">${mkBadge(a.cat)}</div>
-      <span class="rec-title">${a.title}${subHtml}</span>
-      <button class="rec-arrow" onclick="showDetail(${a.no})">詳細 →</button>
+    <div class="act-card" onclick="showDetail(${a.no})">
+      <div class="act-card-left">
+        <div class="act-card-meta">
+          <span class="act-card-no">No.${a.no}</span>
+          <span class="act-card-date">${a.date}</span>
+          ${mkBadge(a.cat)}
+        </div>
+        <div class="act-card-title">${a.title}</div>
+        ${subParts.length?`<div class="act-card-sub">${subParts.join('　')}</div>`:''}
+      </div>
+      <div class="act-card-arrow">›</div>
     </div>`;
   }).join("");
 }
