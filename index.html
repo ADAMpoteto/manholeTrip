@@ -49,6 +49,15 @@ nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.93);backdrop-
 .b-road   {background:#e8fde8;color:#1a7a1a;}
 .b-meal   {background:#fdf5e8;color:#9a6810;}
 .b-wedding{background:#fde8f5;color:#8a1a68;}
+.b-c6     {background:#e8fbfd;color:#0a7d96;}
+.b-c7     {background:#f0e8fd;color:#5a1ab0;}
+.b-c8     {background:#fdf8e8;color:#8a8010;}
+.b-c9     {background:#e8edfd;color:#2a3a9a;}
+.b-c10    {background:#fde8ec;color:#b01a4a;}
+.b-c11    {background:#eafde8;color:#3a9a1a;}
+.b-c12    {background:#fdebe0;color:#cc5500;}
+.b-c13    {background:#e8fdf3;color:#0a9a5a;}
+.b-c14    {background:#f5e8fd;color:#7a1a9a;}
 .b-other  {background:var(--bg3);color:var(--text2);}
 
 /* TOP HERO */
@@ -467,8 +476,56 @@ function goto(page){
   window.scrollTo(0,0);
 }
 
-function badgeCls(c){return({二郎:"b-jiro",マンホールカード:"b-mh",ロード:"b-road",食事:"b-meal",結婚式:"b-wedding"})[c]||"b-other";}
-function mkBadge(c){return`<span class="badge ${badgeCls(c)}">${c}</span>`;}
+// バッジ色パレット（既存カテゴリの見た目は維持しつつ、未知のカテゴリにも重複しない色を割り当てる）
+const BADGE_PALETTE=[
+  {cls:"b-jiro",   name:"二郎"},
+  {cls:"b-mh",     name:"マンホールカード"},
+  {cls:"b-road",   name:"ロード"},
+  {cls:"b-meal",   name:"食事"},
+  {cls:"b-wedding",name:"結婚式"},
+  {cls:"b-c6"},{cls:"b-c7"},{cls:"b-c8"},{cls:"b-c9"},{cls:"b-c10"},
+  {cls:"b-c11"},{cls:"b-c12"},{cls:"b-c13"},{cls:"b-c14"}
+];
+let categoryClassMap={};
+
+// HSLで色を生成（パレットを使い切った場合の保険。黄金角で回して隣接カテゴリと被らないようにする）
+function hslColorForIndex(i){
+  const hue=(i*137.508)%360;
+  return {bg:`hsl(${hue.toFixed(0)},70%,93%)`, fg:`hsl(${hue.toFixed(0)},55%,33%)`};
+}
+
+// 活動データ中の全カテゴリに、重複しない色を一つずつ割り当てる
+function assignCategoryColors(cats){
+  categoryClassMap={};
+  const usedCls=new Set();
+  // 既知のカテゴリ名は従来の配色を優先的に維持
+  cats.forEach(cat=>{
+    const known=BADGE_PALETTE.find(p=>p.name===cat);
+    if(known){ categoryClassMap[cat]={cls:known.cls}; usedCls.add(known.cls); }
+  });
+  // 残りのカテゴリには、まだ使っていないパレット色を順に割り当てる
+  let pi=0, overflowIdx=0;
+  cats.forEach(cat=>{
+    if(categoryClassMap[cat]) return;
+    while(pi<BADGE_PALETTE.length && usedCls.has(BADGE_PALETTE[pi].cls)) pi++;
+    if(pi<BADGE_PALETTE.length){
+      categoryClassMap[cat]={cls:BADGE_PALETTE[pi].cls};
+      usedCls.add(BADGE_PALETTE[pi].cls);
+      pi++;
+    } else {
+      // パレットを使い切ったら自動生成色（インラインスタイル）
+      categoryClassMap[cat]={style:hslColorForIndex(overflowIdx)};
+      overflowIdx++;
+    }
+  });
+}
+
+function mkBadge(c){
+  const m=categoryClassMap[c];
+  if(m&&m.cls) return `<span class="badge ${m.cls}">${c}</span>`;
+  if(m&&m.style) return `<span class="badge" style="background:${m.style.bg};color:${m.style.fg}">${c}</span>`;
+  return `<span class="badge b-other">${c}</span>`;
+}
 
 async function fetchCSV(url){
   const res=await fetch(url);
@@ -522,6 +579,7 @@ async function loadActivity(){
 
   // フィルターボタン
   const cats=[...new Set(activities.map(a=>a.cat).filter(Boolean))];
+  assignCategoryColors(cats);
   const bar=document.getElementById("filter-bar");
   cats.forEach(cat=>{
     const btn=document.createElement("button");
