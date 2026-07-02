@@ -406,7 +406,7 @@ tbody tr:hover td{background:var(--bg2);}
 <!-- ACTIVITIES -->
 <div id="activities" class="page">
 <div class="container">
-  <div class="page-header"><h1>活動実績</h1></div>
+  <div class="page-header"><h1>活動実績</h1><p>二郎・マンホールカード・ロード・食事など、これまでの活動の記録</p></div>
   <div class="filter-bar" id="filter-bar">
     <button class="filter-btn active" onclick="filterAct('all',this)">すべて</button>
   </div>
@@ -446,7 +446,7 @@ tbody tr:hover td{background:var(--bg2);}
 <!-- MANHOLE TRIP -->
 <div id="manhole" class="page">
 <div class="container">
-  <div class="page-header"><h1>マンホールカード旅程</h1></div>
+  <div class="page-header"><h1>マンホールカード旅程</h1><p>訪問先・移動時間・収集状況をまとめた旅行の行程表</p></div>
   <div class="trip-selbox"><select id="trip-sel"><option>読み込み中…</option></select></div>
   <div class="trip-stats" id="trip-stats"></div>
   <div id="trip-days"><div class="loading">読み込み中…</div></div>
@@ -466,7 +466,7 @@ tbody tr:hover td{background:var(--bg2);}
 <!-- PROGRESS -->
 <div id="progress" class="page">
 <div class="container">
-  <div class="page-header"><h1>マンホールカード収集進捗</h1></div>
+  <div class="page-header"><h1>マンホールカード収集進捗</h1><p>エリア・都道府県ごとにメンバー3人の取得状況を比較</p></div>
   <div id="prog-stats" style="display:none"></div>
   <div class="tab-bar">
     <button class="tab-btn active" onclick="switchTab('area',this)">エリア別</button>
@@ -485,7 +485,7 @@ tbody tr:hover td{background:var(--bg2);}
 <!-- RULES -->
 <div id="rules" class="page">
 <div class="container">
-  <div class="page-header"><h1>旅行規程</h1></div>
+  <div class="page-header"><h1>旅行規程</h1><p>マンホールカード取得旅行における費用負担・役割分担のルール</p></div>
   <div class="rules-body">
     <p>本規程は、マンホールカード取得を目的として実施する旅行（以下「本旅行」という。）の円滑かつ安全な遂行を図るため、参加者が遵守すべき事項を定めるものである。</p>
     <h2>第1条（適用範囲）</h2>
@@ -1046,10 +1046,13 @@ function starPoints(cx,cy,rOuter,rInner){
 }
 
 // 円の縁に達成率リングを描き、その内側に任意のアイコンSVGを重ねたバッジを作る
-function badgeSVG(innerSVG,obtained,total,earned){
+// 帆立形（メダル/シール状）の外周ポイントを生成する
+// 円の縁に達成率リングを描き、その内側に任意のアイコンSVGを重ねたバッジを作る
+function badgeSVG(innerSVG,obtained,total){
   const r=25,c=2*Math.PI*r;
   const pct=total>0?Math.max(0,Math.min(1,obtained/total)):0;
   const dash=(pct*c).toFixed(1);
+  const earned=obtained>0;
   const color=earned?"var(--text)":"var(--text3)";
   return `<svg viewBox="0 0 56 56" style="color:${color}">
     <circle cx="28" cy="28" r="${r}" fill="var(--bg2)"></circle>
@@ -1083,7 +1086,7 @@ function renderMyPage(){
   const starSvg=`<polygon points="${starPoints(28,28,12,5)}" fill="currentColor"></polygon>`;
   const totalHtml=`
     <div class="mypage-total">
-      <div class="badge-circle">${badgeSVG(starSvg,totalObtained,totalAll,totalObtained>0)}</div>
+      <div class="badge-circle">${badgeSVG(starSvg,totalObtained,totalAll)}</div>
       <div>
         <div class="mypage-total-label">総取得枚数バッジ</div>
         <div class="mypage-total-val">${totalObtained}<span class="unit"> / ${totalAll}枚</span></div>
@@ -1107,7 +1110,7 @@ function renderMyPage(){
     const shapeSvg=shape?`<svg x="14" y="14" width="28" height="28" viewBox="${shape.vb}"><polygon points="${shape.p}" fill="currentColor"></polygon></svg>`:"";
     return `
       <div class="badge-item${earned?" earned":""}">
-        <div class="badge-circle">${badgeSVG(shapeSvg,g.obtained,g.total,earned)}</div>
+        <div class="badge-circle">${badgeSVG(shapeSvg,g.obtained,g.total)}</div>
         <p class="badge-name">${name}</p>
         <p class="badge-frac">${g.obtained}/${g.total}</p>
       </div>`;
@@ -1133,7 +1136,7 @@ function renderMyPage(){
     const numSvg=`<text x="28" y="33" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">${r}</text>`;
     return `
       <div class="badge-item${earned?" earned":""}">
-        <div class="badge-circle">${badgeSVG(numSvg,g.obtained,g.total,earned)}</div>
+        <div class="badge-circle">${badgeSVG(numSvg,g.obtained,g.total)}</div>
         <p class="badge-name">${label}</p>
         <p class="badge-frac">${g.obtained}/${g.total}</p>
       </div>`;
