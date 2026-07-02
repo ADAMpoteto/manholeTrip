@@ -15,12 +15,23 @@
   --accent:#111; --accent-light:#f0f0ee;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-tap-highlight-color:transparent;}
 body{font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;}
 a{color:inherit;text-decoration:none;}
 button{font-family:inherit;}
 
+/* ACCESSIBILITY: 見えるフォーカスリング */
+a:focus-visible,button:focus-visible,select:focus-visible,[tabindex]:focus-visible{
+  outline:2px solid #1a4db0;outline-offset:2px;border-radius:4px;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;}
+}
+
 /* NAV */
-nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.93);backdrop-filter:blur(12px);border-bottom:.5px solid var(--border);padding:0 16px;}
+nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.93);backdrop-filter:blur(12px);border-bottom:.5px solid var(--border);padding:0 16px;transition:box-shadow .2s;}
+nav.scrolled{box-shadow:0 2px 14px rgba(0,0,0,.06);}
 .nav-top{display:flex;justify-content:flex-start;padding:8px 0 4px;}
 .nav-brand{font-size:11px;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:6px;}
 .nav-links{display:flex;justify-content:center;gap:2px;overflow-x:auto;scrollbar-width:none;padding-bottom:6px;}
@@ -31,7 +42,8 @@ nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.93);backdrop-
 
 /* PAGES */
 .page{display:none;}
-.page.active{display:block;}
+.page.active{display:block;animation:pageIn .28s ease both;}
+@keyframes pageIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 .container{max-width:960px;margin:0 auto;padding:28px 16px;}
 
 /* SECTION LABEL */
@@ -65,14 +77,16 @@ nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.93);backdrop-
 .hero-title{font-size:24px;font-weight:800;line-height:1.3;margin-bottom:0;letter-spacing:-.03em;}
 
 /* KPI - 活動回数 */
-.kpi-act-card{background:var(--bg2);border-radius:var(--rl);padding:16px;border-left:3px solid var(--text);margin-bottom:12px;}
+.kpi-act-card{background:var(--bg2);border-radius:var(--rl);padding:16px;border-left:3px solid var(--text);margin-bottom:12px;transition:box-shadow .18s,transform .18s;}
+.kpi-act-card:hover{box-shadow:0 6px 18px rgba(0,0,0,.06);transform:translateY(-1px);}
 .kpi-label{font-size:9px;color:var(--text3);font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;}
 .kpi-val{font-size:28px;font-weight:800;letter-spacing:-.03em;line-height:1;}
 .kpi-unit{font-size:12px;color:var(--text2);font-weight:400;}
 
 /* KPI - メンバーカード */
 .kpi-members{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:32px;}
-.kpi-member-card{background:var(--bg2);border-radius:var(--rl);padding:12px 10px;border-left:3px solid var(--text);display:flex;flex-direction:column;gap:4px;}
+.kpi-member-card{background:var(--bg2);border-radius:var(--rl);padding:12px 10px;border-left:3px solid var(--text);display:flex;flex-direction:column;gap:4px;transition:box-shadow .18s,transform .18s;}
+.kpi-member-card:hover{box-shadow:0 6px 18px rgba(0,0,0,.06);transform:translateY(-1px);}
 .kpi-member-name{font-size:10px;color:var(--text3);font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px;}
 .kpi-member-section-label{font-size:9px;color:var(--text3);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-top:4px;}
 .kpi-member-val{font-size:16px;font-weight:800;letter-spacing:-.02em;line-height:1.2;word-break:break-all;}
@@ -230,7 +244,7 @@ tbody tr:hover td{background:var(--bg2);}
 .mai-n{font-weight:800;}
 
 /* RULES */
-.rules-body{font-size:14px;line-height:1.9;max-width:620px;}
+.rules-body{font-size:14px;line-height:1.9;max-width:640px;margin:0 auto;}
 .rules-body p{color:var(--text2);margin-bottom:16px;}
 .rules-body h2{font-size:13px;font-weight:800;margin:28px 0 12px;padding:8px 12px;border-left:4px solid var(--text);background:var(--bg2);border-radius:0 var(--r) var(--r) 0;}
 .rules-body h2:first-of-type{margin-top:0;}
@@ -238,7 +252,9 @@ tbody tr:hover td{background:var(--bg2);}
 .rules-body li{margin-bottom:6px;color:var(--text2);}
 .rules-body a{color:#1a4db0;}
 
-.loading{padding:32px 0;text-align:center;color:var(--text3);font-size:13px;}
+.loading{padding:32px 0;text-align:center;color:var(--text3);font-size:13px;position:relative;}
+.loading::after{content:"";display:inline-block;width:14px;height:14px;margin-left:8px;border-radius:50%;border:2px solid var(--border2);border-top-color:var(--text3);vertical-align:middle;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
 
 /* ===== CYCLE (自転車旅) ===== */
 .cycle-hero{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;}
@@ -377,7 +393,7 @@ tbody tr:hover td{background:var(--bg2);}
 <!-- DETAIL -->
 <div id="detail" class="page">
 <div class="container">
-  <button class="back-btn" onclick="goto('activities')">← 活動実績に戻る</button>
+  <button class="back-btn" onclick="goBackFromDetail()">← 活動実績に戻る</button>
   <div class="det-header">
     <h1 id="det-title"></h1>
     <div class="det-meta"><span id="det-date"></span><span id="det-badge"></span></div>
@@ -466,15 +482,48 @@ const URL_TRIP = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRayAxX6Aex3K-
 const URL_MH   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRayAxX6Aex3K-PPMF5w_5al4vB1Ng_0DHRPCsrXaBcQE6q9WTiNoNuLQIz0MtFgZerMKZzG0ywHGGq/pub?gid=1521643916&single=true&output=csv";
 const URL_CYCLE= "https://docs.google.com/spreadsheets/d/e/2PACX-1vRayAxX6Aex3K-PPMF5w_5al4vB1Ng_0DHRPCsrXaBcQE6q9WTiNoNuLQIz0MtFgZerMKZzG0ywHGGq/pub?gid=587788443&single=true&output=csv";
 
-let activities=[], trips={}, mhData=[], cycleData=[];
+let activities=[], trips={}, mhData=[], cycleData=[], activitiesReady=false;
 
-function goto(page){
+// ブラウザの戻る/進むボタンに対応するため、ページ遷移は History API のハッシュで管理する
+function applyPage(page){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-  document.getElementById(page).classList.add("active");
+  const el=document.getElementById(page);
+  if(!el) return;
+  el.classList.add("active");
   const lbl={top:"トップ",activities:"活動実績",progress:"収集進捗",manhole:"旅程",cycle:"自転車旅",rules:"旅行規程",detail:"活動実績"};
   document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.textContent.trim()===lbl[page]));
   window.scrollTo(0,0);
 }
+
+function goto(page,push=true){
+  applyPage(page);
+  if(push){
+    const hash="#"+page;
+    if(location.hash!==hash) history.pushState({page},"",hash);
+  }
+}
+
+function parseHash(){
+  const h=(location.hash||"").replace(/^#/,"");
+  if(!h) return {page:"top"};
+  const m=h.match(/^detail-(\d+)$/);
+  if(m) return {page:"detail",no:Number(m[1])};
+  return {page:h};
+}
+
+window.addEventListener("popstate",e=>{
+  const st=e.state||parseHash();
+  if(st.page==="detail"&&st.no){
+    if(activitiesReady) showDetail(st.no,false); else applyPage("detail");
+  } else {
+    applyPage(st.page||"top");
+  }
+});
+
+// ナビゲーションのスクロール時にわずかな影を付ける
+window.addEventListener("scroll",()=>{
+  document.querySelector("nav").classList.toggle("scrolled",window.scrollY>4);
+},{passive:true});
 
 // バッジ色パレット（既存カテゴリの見た目は維持しつつ、未知のカテゴリにも重複しない色を割り当てる）
 const BADGE_PALETTE=[
@@ -686,7 +735,13 @@ function renderActTable(filter){
   }).join("")||"<div style=\"padding:20px;color:var(--text3);text-align:center\">該当なし</div>";
 }
 
-function showDetail(no){
+function goBackFromDetail(){
+  // 直接URLで詳細を開いた場合など、戻る履歴がない時は活動実績一覧へフォールバック
+  if(history.state&&history.state.page==="detail"&&history.length>1){ history.back(); }
+  else { goto("activities"); }
+}
+
+function showDetail(no,push=true){
   const a=activities.find(x=>x.no===no); if(!a) return;
   document.getElementById("det-title").textContent=a.title;
   document.getElementById("det-date").textContent=a.date;
@@ -706,7 +761,11 @@ function showDetail(no){
   const raw=a.comment||"（コメントは後で追加予定）";
   let first=true;
   commentEl.innerHTML=raw.replace(/#/g,()=>{if(first){first=false;return '#';}return '<br>#';});
-  goto("detail");
+  applyPage("detail");
+  if(push){
+    const hash="#detail-"+no;
+    if(location.hash!==hash) history.pushState({page:"detail",no},"",hash);
+  }
 }
 
 // TRIP
@@ -1024,7 +1083,19 @@ function switchTab(tab,btn){
   renderTab(tab);
 }
 
-loadActivity(); loadTrip(); loadMH(); loadCycle();
+// 初期表示: URLのハッシュに応じて開始ページを決定し、履歴の起点を整える
+(function initRouting(){
+  const st=parseHash();
+  history.replaceState({page:st.page,no:st.no},"",location.hash||"#top");
+  if(st.page&&st.page!=="top"&&st.page!=="detail"){ applyPage(st.page); }
+})();
+
+loadActivity().then(()=>{
+  activitiesReady=true;
+  const st=parseHash();
+  if(st.page==="detail"&&st.no){ showDetail(st.no,false); }
+});
+loadTrip(); loadMH(); loadCycle();
 </script>
 </body>
 </html>
