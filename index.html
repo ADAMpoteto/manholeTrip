@@ -820,7 +820,8 @@ async function loadTrip(){
     if(!o["旅行日"]||!o["旅行日"].trim()) return;
     const name=`${o["旅行日"]} ${o["旅行タイトル"]}`;
     const day=Number(o["何日目"]);
-    if(!res[name]) res[name]={days:[]};
+    if(!res[name]) res[name]={days:[],walica:""};
+    if(!res[name].walica && o["Walica"] && o["Walica"].trim()) res[name].walica=o["Walica"].trim();
     while(res[name].days.length<day) res[name].days.push([]);
     res[name].days[day-1].push({
       departure:o["出発時刻"]||"",arrival:o["到着時刻"]||"",
@@ -846,7 +847,8 @@ function renderTrip(name){
   document.getElementById("trip-stats").innerHTML=`
     <div class="stat-chip">総距離 <strong>${dist.toFixed(1)} km</strong></div>
     <div class="stat-chip">訪問予定 <strong>${spots} 件</strong></div>
-    <div class="stat-chip">収集済 <strong>${done} 枚</strong></div>`;
+    <div class="stat-chip">収集済 <strong>${done} 枚</strong></div>
+    ${data.walica?`<a class="stat-chip" href="${data.walica}" target="_blank" style="color:#1a4db0;font-weight:700;text-decoration:none">💰 Walicaで精算</a>`:''}`;
   document.getElementById("trip-days").innerHTML=data.days.map((day,idx)=>`
     <div class="day-block">
       <div class="day-label">${idx+1}日目</div>
