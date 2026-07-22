@@ -181,6 +181,20 @@ tbody tr:hover td{background:var(--bg2);}
 .trip-tbl{min-width:660px;}
 .trip-tbl tr.done td{color:var(--text3);background:var(--bg2);}
 
+/* 旅程 日別タブ */
+.day-block.hidden{display:none;}
+.trip-day-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;}
+.trip-day-tab{font-size:12px;font-weight:700;padding:7px 14px;border-radius:99px;border:1.5px solid var(--border2);background:var(--bg);color:var(--text2);cursor:pointer;transition:all .12s;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;}
+.trip-day-tab:hover{background:var(--bg2);color:var(--text);}
+.trip-day-tab.active{background:var(--text);color:#fff;border-color:var(--text);}
+.trip-day-tab .tab-frac{font-size:10px;font-weight:700;opacity:.7;}
+.trip-day-tab.active .tab-frac{opacity:.85;}
+.trip-day-tab .tab-dot{width:6px;height:6px;border-radius:50%;background:#1a7a1a;flex-shrink:0;}
+/* 自動スクロール先の一時ハイライト */
+@keyframes tripFlash{0%{background:rgba(26,122,26,.18);}100%{background:transparent;}}
+.trip-tbl tr.trip-flash td{animation:tripFlash 1.6s ease;}
+.trip-card.trip-flash{animation:tripFlash 1.6s ease;}
+
 /* 旅程スマホカード */
 .trip-cards{display:none;}
 .trip-card{padding:14px 14px;border-bottom:1.5px solid var(--border2);border-left:3px solid transparent;}
@@ -449,6 +463,7 @@ tbody tr:hover td{background:var(--bg2);}
   <div class="page-header"><h1>マンホールカード旅程</h1><p>訪問先・移動時間・収集状況をまとめた旅行の行程表</p></div>
   <div class="trip-selbox"><select id="trip-sel"><option>読み込み中…</option></select></div>
   <div class="trip-stats" id="trip-stats"></div>
+  <div class="trip-day-tabs" id="trip-day-tabs"></div>
   <div id="trip-days"><div class="loading">読み込み中…</div></div>
 </div>
 </div>
@@ -536,6 +551,10 @@ function applyPage(page){
   const lbl={top:"トップ",mypage:"マイページ",activities:"実績",progress:"進捗",manhole:"旅程",cycle:"自転車",rules:"規程",detail:"実績"};
   document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.textContent.trim()===lbl[page]));
   window.scrollTo(0,0);
+  if(page==="manhole"){
+    if(currentTripName&&trips[currentTripName]) renderTrip(currentTripName,{resetDay:true});
+    maybeScrollTripDone();
+  }
 }
 
 function goto(page,push=true){
@@ -813,6 +832,7 @@ function showDetail(no,push=true){
 
 // TRIP
 const EXCLUDE=["徒歩","電車","新幹線","朝食","昼食","夕食","ホテル","観光"];
+let currentTripName=null, currentTripDay=0;
 async function loadTrip(){
   const r=await fetchCSV(URL_TRIP);
   const res={};
@@ -834,11 +854,27 @@ async function loadTrip(){
   trips=res;
   const sel=document.getElementById("trip-sel");
   sel.innerHTML=Object.keys(trips).map(n=>`<option value="${n}">${n}</option>`).join("");
-  sel.onchange=()=>renderTrip(sel.value);
+  sel.onchange=()=>{ renderTrip(sel.value); maybeScrollTripDone(); };
   if(sel.options.length) renderTrip(sel.value);
+  maybeScrollTripDone();
 }
-function renderTrip(name){
+function renderTrip(name, opts){
+  opts=opts||{};
   const data=trips[name]; if(!data) return;
+  const isNewTrip = name!==currentTripName;
+  currentTripName=name;
+
+  // 表示する日を決定：明示指定 > 収集済(済)の最前線の日 > 1日目
+  if(opts.day!=null){
+    currentTripDay=opts.day;
+  } else if(isNewTrip || opts.resetDay){
+    const f=findTripFrontierDay(data);
+    currentTripDay=(f!=null)?f:0;
+  }
+  if(currentTripDay<0) currentTripDay=0;
+  if(currentTripDay>data.days.length-1) currentTripDay=data.days.length-1;
+
+  // 全体の統計（全日合計）
   let dist=0,spots=0,done=0;
   data.days.forEach(day=>day.forEach(i=>{
     const d=parseFloat(i.distance); if(!isNaN(d)) dist+=d;
@@ -849,15 +885,29 @@ function renderTrip(name){
     <div class="stat-chip">訪問予定 <strong>${spots} 件</strong></div>
     <div class="stat-chip">収集済 <strong>${done} 枚</strong></div>
     ${data.walica?`<a class="stat-chip" href="${data.walica}" target="_blank" style="color:#1a4db0;font-weight:700;text-decoration:none"> Walica URL</a>`:''}`;
-  document.getElementById("trip-days").innerHTML=data.days.map((day,idx)=>`
-    <div class="day-block">
+
+  // 日別タブ（各日の 収集済/対象件数 を表示。済が1件でもある日は緑ドット付き）
+  document.getElementById("trip-day-tabs").innerHTML=data.days.map((day,idx)=>{
+    let ds=0,dd=0;
+    day.forEach(i=>{ if(!EXCLUDE.includes(i.city)){ds++; if(i.done) dd++;} });
+    const frac=ds>0?`<span class="tab-frac">${dd}/${ds}</span>`:'';
+    const dot=dd>0?`<span class="tab-dot"></span>`:'';
+    return `<button class="trip-day-tab${idx===currentTripDay?' active':''}" onclick="selectTripDay(${idx})">${idx+1}日目${frac}${dot}</button>`;
+  }).join("");
+
+  // 各日のブロック（選択中の日だけ表示。他の日は hidden）
+  document.getElementById("trip-days").innerHTML=data.days.map((day,idx)=>{
+    let lastDone=-1;
+    day.forEach((i,i2)=>{ if(i.done) lastDone=i2; });
+    return `
+    <div class="day-block${idx===currentTripDay?'':' hidden'}" data-day="${idx}">
       <div class="day-label">${idx+1}日目</div>
       <div class="tbl-wrap"><table class="trip-tbl">
         <thead><tr><th>No</th><th>済</th><th>出発</th><th>到着</th><th>距離</th><th>市区町村</th><th>目的地</th><th>営業時間</th><th>住所</th><th>GKP</th></tr></thead>
         <tbody>${day.map((i,i2)=>`
-          <tr class="${i.done?"done":""}">
+          <tr class="${i.done?'done':''}${i2===lastDone?' done-last':''}">
             <td style="color:var(--text3);font-size:11px">${i2+1}</td>
-            <td>${i.done?"<span class=\"done-pill\">済</span>":""}</td>
+            <td>${i.done?'<span class="done-pill">済</span>':''}</td>
             <td style="font-size:12px;color:var(--text2);white-space:nowrap">${i.departure}</td>
             <td style="font-size:12px;color:var(--text2);white-space:nowrap">${i.arrival}</td>
             <td style="font-size:12px;color:var(--text2)">${i.distance}</td>
@@ -865,8 +915,8 @@ function renderTrip(name){
             <td style="font-size:12px;font-weight:600">${i.url?`<a href="${i.url}" target="_blank" style="color:#1a4db0;font-weight:600">${i.title}</a>`:i.title}</td>
             <td style="font-size:11px;color:var(--text2);white-space:nowrap">${i.time}</td>
             <td style="font-size:11px"><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(i.address)}" target="_blank" class="addr-link">${i.address}</a></td>
-            <td>${i.mhUrl?`<a href="${i.mhUrl}" target="_blank" class="ext-link">↗</a>`:""}</td>
-          </tr>`).join("")}
+            <td>${i.mhUrl?`<a href="${i.mhUrl}" target="_blank" class="ext-link">↗</a>`:''}</td>
+          </tr>`).join('')}
         </tbody>
       </table></div>
       <div class="trip-cards">${day.map((i,i2)=>{
@@ -879,7 +929,7 @@ function renderTrip(name){
           i.address?`<div class="trip-card-row"><span class="trip-card-label">住所</span><span class="trip-card-val"><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(i.address)}" target="_blank">${i.address}</a></span></div>`:'',
           i.mhUrl?`<div class="trip-card-row"><span class="trip-card-label">GKP</span><span class="trip-card-val"><a href="${i.mhUrl}" target="_blank">↗ カード</a></span></div>`:'',
         ].filter(Boolean).join('');
-        return`<div class="trip-card${i.done?' done':''}">
+        return`<div class="trip-card${i.done?' done':''}${i2===lastDone?' done-last':''}">
           <div class="trip-card-head">
             <span class="trip-card-no">${i2+1}</span>
             <span class="trip-card-title">${i.url?`<a href="${i.url}" target="_blank">${i.title}</a>`:i.title}</span>
@@ -888,7 +938,62 @@ function renderTrip(name){
           ${rows?`<div class="trip-card-body">${rows}</div>`:''}
         </div>`;
       }).join('')}</div>
-    </div>`).join("");
+    </div>`;
+  }).join("");
+}
+
+// 収集済(済)が存在する最後の日のインデックスを返す（1件も無ければ null）
+function findTripFrontierDay(data){
+  let last=null;
+  data.days.forEach((day,di)=>{
+    day.forEach(it=>{ if(it.done) last=di; });
+  });
+  return last;
+}
+
+// 日別タブの切り替え
+function selectTripDay(idx){
+  if(!currentTripName) return;
+  renderTrip(currentTripName,{day:idx});
+  scrollTripToTop();
+}
+
+function prefersReduced(){
+  return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+}
+
+// 日を切り替えたときに、日別タブが見える位置まで戻す
+function scrollTripToTop(){
+  const anchor=document.getElementById("trip-day-tabs");
+  if(!anchor) return;
+  const nav=document.querySelector("nav");
+  const navH=nav?nav.offsetHeight:0;
+  const y=window.scrollY+anchor.getBoundingClientRect().top-navH-8;
+  window.scrollTo({top:Math.max(0,y),behavior:prefersReduced()?"auto":"smooth"});
+}
+
+// 表示中の日の中で、最後の「済」項目まで自動スクロール（見つからなければ何もしない）
+function scrollTripToDone(){
+  const container=document.getElementById("trip-days");
+  if(!container) return;
+  const block=container.querySelector(".day-block:not(.hidden)");
+  if(!block) return;
+  let el=null;
+  block.querySelectorAll(".done-last").forEach(m=>{ if(m.getClientRects().length) el=m; });
+  if(!el) return;
+  const nav=document.querySelector("nav");
+  const navH=nav?nav.offsetHeight:0;
+  const y=window.scrollY+el.getBoundingClientRect().top-navH-14;
+  window.scrollTo({top:Math.max(0,y),behavior:prefersReduced()?"auto":"smooth"});
+  el.classList.remove("trip-flash");
+  void el.offsetWidth;
+  el.classList.add("trip-flash");
+  setTimeout(()=>el.classList.remove("trip-flash"),1700);
+}
+
+// 旅程ページが表示中のときだけ、済までスクロール（レイアウト確定を待って実行）
+function maybeScrollTripDone(){
+  requestAnimationFrame(()=>requestAnimationFrame(scrollTripToDone));
 }
 
 // CYCLE (自転車旅)
