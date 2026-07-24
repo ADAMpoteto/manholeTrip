@@ -3,7 +3,6 @@
   --text:#111; --text2:#66666a; --text3:#aaa;
   --border:rgba(0,0,0,.10); --border2:rgba(0,0,0,.18);
   --r:6px; --rl:10px;
-  --accent:#111; --accent-light:#f0f0ee;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html{-webkit-tap-highlight-color:transparent;}
