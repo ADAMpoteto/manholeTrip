@@ -33,8 +33,9 @@
 
   <div class="sec-label">サマリー</div>
   <div class="filter-bar" id="kpi-toggle">
-    <button class="filter-btn active" onclick="toggleKPI('all',this)">部活動全体</button>
-    <button class="filter-btn" onclick="toggleKPI('full',this)">全員参加</button>
+    <button class="filter-btn active" onclick="toggleKPI('full',this)">全員参加</button>
+    <button class="filter-btn" onclick="toggleKPI('partial',this)">2人参加</button>
+    <button class="filter-btn" onclick="toggleKPI('all',this)">部活動全体</button>
   </div>
   <div id="kpi-section"><div class="loading">読み込み中…</div></div>
 
@@ -59,8 +60,9 @@
 <div class="container">
   <div class="page-header"><h1>活動実績</h1><p>これまでの活動実績の記録</p></div>
   <div class="filter-bar" id="participation-bar">
-    <button class="filter-btn active" onclick="filterParticipation('all',this)">部活動全体</button>
-    <button class="filter-btn" onclick="filterParticipation('full',this)">全員参加</button>
+    <button class="filter-btn active" onclick="filterParticipation('full',this)">全員参加</button>
+    <button class="filter-btn" onclick="filterParticipation('partial',this)">2人参加</button>
+    <button class="filter-btn" onclick="filterParticipation('all',this)">部活動全体</button>
   </div>
   <div class="filter-bar" id="filter-bar">
     <button class="filter-btn active" onclick="filterAct('all',this)">すべて</button>
