@@ -1,6 +1,6 @@
 let activities=[], trips={}, mhData=[], cycleData=[], activitiesReady=false, mhReady=false;
 let currentMypageMember="w";
-let currentParticipation="all"; // "all" or "full"
+let currentParticipation="full"; // "full", "partial", or "all"
 let currentCatFilter="all";
 
 // ===== ルーティング =====
@@ -120,6 +120,7 @@ async function loadActivity(){
       distBike:d["自転車"]||"",
       comment:d["コメント"]||"",
       joinedW,joinedM,joinedK,
+      joinedCount:(joinedW?1:0)+(joinedM?1:0)+(joinedK?1:0),
       allJoined:joinedW&&joinedM&&joinedK
     };
   });
@@ -172,7 +173,13 @@ function buildKPIHtml(acts){
   return actCard+`<div class="kpi-members">${memberCards}</div>`;
 }
 
-let currentKPIMode="all"; // "all" or "full"
+let currentKPIMode="full"; // "all" or "full"
+
+function filterByParticipation(acts,mode){
+  if(mode==="full") return acts.filter(a=>a.allJoined);
+  if(mode==="partial") return acts.filter(a=>a.joinedCount===2);
+  return acts;
+}
 
 function toggleKPI(mode,btn){
   currentKPIMode=mode;
@@ -183,7 +190,7 @@ function toggleKPI(mode,btn){
 
 function renderTopKPIs(){
   const pastAll=activities.filter(a=>!isFutureDate(a.date));
-  const acts=currentKPIMode==="full"?pastAll.filter(a=>a.allJoined):pastAll;
+  const acts=filterByParticipation(pastAll,currentKPIMode);
   document.getElementById("kpi-section").innerHTML=buildKPIHtml(acts);
 }
 
@@ -241,7 +248,7 @@ function filterAct(cat,btn){
 }
 function renderActTable(){
   const pastActs=activities.filter(a=>!isFutureDate(a.date));
-  let list=currentParticipation==="full"?pastActs.filter(a=>a.allJoined):pastActs;
+  let list=filterByParticipation(pastActs,currentParticipation);
   if(currentCatFilter!=="all") list=list.filter(a=>a.cat===currentCatFilter);
   const sorted=[...list].reverse();
 
