@@ -838,7 +838,7 @@ function showDetail(no,push=true){
 }
 
 // TRIP
-const EXCLUDE=["徒歩","電車","新幹線","朝食","昼食","夕食","ホテル","観光"];
+const EXCLUDE=["徒歩","電車","新幹線","朝食","昼食","夕食","ホテル","観光","ー"];
 let currentTripName=null, currentTripDay=0;
 async function loadTrip(){
   const r=await fetchCSV(URL_TRIP);
