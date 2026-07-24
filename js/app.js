@@ -42,6 +42,7 @@ window.addEventListener("scroll",()=>{
 },{passive:true});
 
 // ===== 日付ヘルパー =====
+const TODAY=(()=>{const d=new Date();d.setHours(0,0,0,0);return d;})();
 function parseDate(s){
   if(!s) return null;
   const m=s.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
@@ -49,8 +50,7 @@ function parseDate(s){
   return new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));
 }
 function isFutureDate(d){
-  const today=new Date(); today.setHours(0,0,0,0);
-  const dt=parseDate(d); return dt&&dt>=today;
+  const dt=parseDate(d); return dt&&dt>=TODAY;
 }
 
 // ===== バッジ色 =====
@@ -102,7 +102,9 @@ async function fetchCSV(url){
 
 // ===== ACTIVITY =====
 async function loadActivity(){
-  const r=await fetchCSV(URL_ACT);
+  let r;
+  try{ r=await fetchCSV(URL_ACT); }
+  catch(e){ document.getElementById("kpi-section").innerHTML=`<div class="loading">活動データの読み込みに失敗しました</div>`; return; }
   activities=r.data.filter(d=>d.No&&/^\d+$/.test(d.No.trim())).map(d=>{
     const rawW=(d["西川"]||"").trim();
     const rawM=(d["森角"]||"").trim();
@@ -141,7 +143,7 @@ async function loadActivity(){
 }
 
 // ===== KPIセクション描画 =====
-function buildKPIHtml(acts){
+function buildKPIHtml(acts,mode){
   const MKEYS=[
     {name:"西川",distKey:"distW",joinKey:"joinedW",mhKey:"w"},
     {name:"森角",distKey:"distM",joinKey:"joinedM",mhKey:"m"},
@@ -156,14 +158,18 @@ function buildKPIHtml(acts){
     const totalDist=driven.reduce((s,a)=>{const v=parseFloat(a[mem.distKey]);return s+(isNaN(v)?0:v);},0);
     const mhCount=mhReady?mhData.filter(d=>d[mem.mhKey]).length:"—";
 
+    // 全員参加モードでは参加=100%が自明なので省略
+    const joinRow=mode==="full"?"":
+      `<div class="kpi-member-section-label">参加</div>
+      <div class="kpi-member-val">${joinCount}<span class="unit"> / ${actCount}回</span></div>
+      <hr class="kpi-member-divider">`;
+
     return `<div class="kpi-member-card">
       <div class="kpi-member-name">${mem.name}</div>
       <div class="kpi-member-section-label">取得</div>
       <div class="kpi-member-val">${mhCount}<span class="unit">枚</span></div>
       <hr class="kpi-member-divider">
-      <div class="kpi-member-section-label">参加</div>
-      <div class="kpi-member-val">${joinCount}<span class="unit"> / ${actCount}回</span></div>
-      <hr class="kpi-member-divider">
+      ${joinRow}
       <div class="kpi-member-section-label">運転</div>
       <div class="kpi-member-val">${driven.length}<span class="unit">回</span></div>
       <div class="kpi-member-val">${totalDist.toFixed(1)}<span class="unit">km</span></div>
@@ -189,9 +195,10 @@ function toggleKPI(mode,btn){
 }
 
 function renderTopKPIs(){
+  if(!activities.length) return;
   const pastAll=activities.filter(a=>!isFutureDate(a.date));
   const acts=filterByParticipation(pastAll,currentKPIMode);
-  document.getElementById("kpi-section").innerHTML=buildKPIHtml(acts);
+  document.getElementById("kpi-section").innerHTML=buildKPIHtml(acts,currentKPIMode);
 }
 
 // ===== TOP ページ =====
@@ -330,7 +337,9 @@ function showDetail(no,push=true){
 const EXCLUDE=["徒歩","電車","新幹線","朝食","昼食","夕食","ホテル","観光","ー"];
 let currentTripName=null, currentTripDay=0;
 async function loadTrip(){
-  const r=await fetchCSV(URL_TRIP);
+  let r;
+  try{ r=await fetchCSV(URL_TRIP); }
+  catch(e){ document.getElementById("trip-days").innerHTML=`<div class="loading">旅程データの読み込みに失敗しました</div>`; return; }
   const res={};
   r.data.forEach(o=>{
     if(!o["旅行日"]||!o["旅行日"].trim()) return;
@@ -522,7 +531,9 @@ function renderCycle(){
 
 // ===== MH DATA =====
 async function loadMH(){
-  const r=await fetchCSV(URL_MH);
+  let r;
+  try{ r=await fetchCSV(URL_MH); }
+  catch(e){ document.getElementById("mypage-body").innerHTML=`<div class="loading">マンホールカードデータの読み込みに失敗しました</div>`; return; }
   mhData=r.data.filter(d=>d.No&&/^\d+$/.test(d.No.trim())).map(d=>({
     no:Number(d.No),area:d["エリア"]||"",pref:d["都道府県"]||"",city:d["市区町村"]||"",
     imgUrl:d["画像URL"]||"",code:d["コード"]||"",round:(d["弾数"]||"").trim(),
