@@ -1,345 +1,642 @@
-:root {
-  --bg:#fff; --bg2:#f5f5f3; --bg3:#ebebea;
-  --text:#111; --text2:#66666a; --text3:#aaa;
-  --border:rgba(0,0,0,.10); --border2:rgba(0,0,0,.18);
-  --r:6px; --rl:10px;
-  --accent:#111; --accent-light:#f0f0ee;
+let activities=[], trips={}, mhData=[], cycleData=[], activitiesReady=false, mhReady=false;
+let currentMypageMember="w";
+let currentParticipation="full"; // "full", "partial", or "all"
+let currentCatFilter="all";
+
+// ===== ルーティング =====
+function applyPage(page){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  const el=document.getElementById(page);
+  if(!el) return;
+  el.classList.add("active");
+  const lbl={top:"トップ",mypage:"マイページ",activities:"実績",progress:"進捗",manhole:"旅程",cycle:"自転車",rules:"規程",detail:"実績"};
+  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.textContent.trim()===lbl[page]));
+  window.scrollTo(0,0);
+  if(page==="manhole"){
+    if(currentTripName&&trips[currentTripName]) renderTrip(currentTripName,{resetDay:true});
+    maybeScrollTripDone();
+  }
 }
-*{box-sizing:border-box;margin:0;padding:0;}
-html{-webkit-tap-highlight-color:transparent;}
-body{font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;}
-a{color:inherit;text-decoration:none;}
-button{font-family:inherit;}
-
-/* ACCESSIBILITY: 見えるフォーカスリング */
-a:focus-visible,button:focus-visible,select:focus-visible,[tabindex]:focus-visible{
-  outline:2px solid #1a4db0;outline-offset:2px;border-radius:4px;
+function goto(page,push=true){
+  applyPage(page);
+  if(push){
+    const hash="#"+page;
+    if(location.hash!==hash) history.pushState({page},"",hash);
+  }
 }
-
-@media (prefers-reduced-motion: reduce){
-  *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;}
+function parseHash(){
+  const h=(location.hash||"").replace(/^#/,"");
+  if(!h) return {page:"top"};
+  const m=h.match(/^detail-(\d+)$/);
+  if(m) return {page:"detail",no:Number(m[1])};
+  return {page:h};
 }
+window.addEventListener("popstate",e=>{
+  const st=e.state||parseHash();
+  if(st.page==="detail"&&st.no){
+    if(activitiesReady) showDetail(st.no,false); else applyPage("detail");
+  } else { applyPage(st.page||"top"); }
+});
+window.addEventListener("scroll",()=>{
+  document.querySelector("nav").classList.toggle("scrolled",window.scrollY>4);
+},{passive:true});
 
-/* NAV */
-nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.93);backdrop-filter:blur(12px);border-bottom:.5px solid var(--border);padding:0 16px;transition:box-shadow .2s;}
-nav.scrolled{box-shadow:0 2px 14px rgba(0,0,0,.06);}
-.nav-top{display:flex;justify-content:flex-start;padding:8px 0 4px;}
-.nav-brand{font-size:11px;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:6px;}
-.nav-links{display:flex;justify-content:center;gap:0;overflow-x:auto;scrollbar-width:none;padding-bottom:6px;}
-.nav-links::-webkit-scrollbar{display:none;}
-.nav-btn{font-size:12px;padding:5px 8px;border-radius:var(--r);border:none;background:none;color:var(--text2);cursor:pointer;white-space:nowrap;transition:background .12s,color .12s;}
-.nav-btn:hover{background:var(--bg2);color:var(--text);}
-.nav-btn.active{background:var(--text);color:#fff;}
-@media(max-width:480px){
-  .nav-btn{font-size:11px;padding:5px 6px;}
-  nav{padding:0 8px;}
+// ===== 日付ヘルパー =====
+function parseDate(s){
+  if(!s) return null;
+  const m=s.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+  if(!m) return null;
+  return new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));
 }
-
-/* PAGES */
-.page{display:none;}
-.page.active{display:block;animation:pageIn .28s ease both;}
-@keyframes pageIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
-.container{max-width:960px;margin:0 auto;padding:28px 16px;}
-
-/* SECTION LABEL */
-.sec-label{font-size:9px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--text3);margin-bottom:14px;padding-bottom:7px;border-bottom:1.5px solid var(--border);}
-
-/* PAGE HEADER */
-.page-header{margin-bottom:24px;padding-bottom:14px;border-bottom:2px solid var(--text);}
-.page-header h1{font-size:22px;font-weight:800;margin-bottom:0;letter-spacing:-.03em;}
-.page-header p{font-size:12px;color:var(--text2);margin-top:4px;}
-
-/* BADGES */
-.badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;white-space:nowrap;flex-shrink:0;min-width:90px;text-align:center;display:inline-block;}
-.b-jiro   {background:#fdeee8;color:#b03a1a;}
-.b-mh     {background:#e8f0fd;color:#1a4db0;}
-.b-road   {background:#e8fde8;color:#1a7a1a;}
-.b-meal   {background:#fdf5e8;color:#9a6810;}
-.b-wedding{background:#fde8f5;color:#8a1a68;}
-.b-c6     {background:#e8fbfd;color:#0a7d96;}
-.b-c7     {background:#f0e8fd;color:#5a1ab0;}
-.b-c8     {background:#fdf8e8;color:#8a8010;}
-.b-c9     {background:#e8edfd;color:#2a3a9a;}
-.b-c10    {background:#fde8ec;color:#b01a4a;}
-.b-c11    {background:#eafde8;color:#3a9a1a;}
-.b-c12    {background:#fdebe0;color:#cc5500;}
-.b-c13    {background:#e8fdf3;color:#0a9a5a;}
-.b-c14    {background:#f5e8fd;color:#7a1a9a;}
-.b-other  {background:var(--bg3);color:var(--text2);}
-
-/* TOP HERO */
-.hero{padding:32px 0 28px;border-bottom:2px solid var(--text);margin-bottom:28px;}
-.hero-title{font-size:24px;font-weight:800;line-height:1.3;margin-bottom:0;letter-spacing:-.03em;}
-
-/* KPI - 活動回数 */
-.kpi-act-card{background:var(--bg2);border-radius:var(--rl);padding:16px;border-left:3px solid var(--text);margin-bottom:12px;transition:box-shadow .18s,transform .18s;}
-.kpi-act-card:hover{box-shadow:0 6px 18px rgba(0,0,0,.06);transform:translateY(-1px);}
-.kpi-label{font-size:9px;color:var(--text3);font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;}
-.kpi-val{font-size:28px;font-weight:800;letter-spacing:-.03em;line-height:1;}
-.kpi-unit{font-size:12px;color:var(--text2);font-weight:400;}
-
-/* KPI - メンバーカード */
-.kpi-members{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:32px;}
-.kpi-member-card{background:var(--bg2);border-radius:var(--rl);padding:12px 10px;border-left:3px solid var(--text);display:flex;flex-direction:column;gap:4px;transition:box-shadow .18s,transform .18s;}
-.kpi-member-card:hover{box-shadow:0 6px 18px rgba(0,0,0,.06);transform:translateY(-1px);}
-.kpi-member-name{font-size:10px;color:var(--text3);font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px;}
-.kpi-member-section-label{font-size:9px;color:var(--text3);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-top:4px;}
-.kpi-member-val{font-size:16px;font-weight:800;letter-spacing:-.02em;line-height:1.2;word-break:break-all;}
-.kpi-member-val .unit{font-size:10px;color:var(--text2);font-weight:400;margin-left:1px;}
-.kpi-member-divider{border:none;border-top:.5px solid var(--border);margin:4px 0;}
-
-/* RECENT ROWS */
-.rec-row{display:grid;grid-template-columns:90px 110px 1fr auto;align-items:center;gap:8px;padding:12px 10px;border-bottom:.5px solid var(--border);border-left:3px solid transparent;transition:border-color .12s,background .12s;}
-.rec-row:hover{border-left-color:var(--text);background:var(--bg2);}
-.rec-badge{display:flex;justify-content:center;}
-.rec-row:last-child{border-bottom:none;}
-.rec-date{font-size:11px;font-weight:700;color:var(--text2);}
-.rec-title{font-size:13px;font-weight:700;min-width:0;}
-.rec-arrow{font-size:12px;color:var(--text3);cursor:pointer;border:none;background:none;white-space:nowrap;}
-.rec-arrow:hover{color:var(--text);}
-
-/* UPCOMING */
-.upcoming-row{display:grid;grid-template-columns:90px 110px 1fr;align-items:center;gap:8px;padding:12px 10px;border-bottom:.5px solid var(--border);border-left:3px solid #1a4db0;background:linear-gradient(90deg,rgba(26,77,176,.04) 0%,transparent 60%);}
-.upcoming-row:last-child{border-bottom:none;}
-.upcoming-date{font-size:11px;font-weight:700;color:#1a4db0;}
-.upcoming-title{font-size:13px;font-weight:700;min-width:0;color:var(--text);}
-.upcoming-empty{padding:16px 0;font-size:13px;color:var(--text3);}
-
-/* FILTER BAR */
-.filter-bar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
-.filter-btn{font-size:11px;padding:4px 11px;border-radius:99px;border:.5px solid var(--border2);background:none;color:var(--text2);cursor:pointer;transition:all .12s;}
-.filter-btn:hover{background:var(--bg2);color:var(--text);}
-.filter-btn.active{background:var(--text);color:#fff;border-color:var(--text);}
-
-.act-table td.badge-cell{text-align:center;}
-.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-table{width:100%;border-collapse:collapse;min-width:460px;}
-.act-table{table-layout:auto;}
-.act-table .title-cell{white-space:normal;word-break:break-all;font-weight:700;}
-th{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);padding:7px 8px;border-bottom:1.5px solid var(--border);text-align:left;white-space:nowrap;}
-td{padding:9px 8px;border-bottom:.5px solid var(--border);vertical-align:middle;font-weight:500;}
-tr:last-child td{border-bottom:none;}
-tbody tr:hover td{background:var(--bg2);}
-.det-btn{font-size:11px;color:var(--text3);background:none;border:.5px solid var(--border2);border-radius:var(--r);padding:3px 9px;cursor:pointer;}
-.det-btn:hover{color:var(--text);background:var(--bg2);}
-
-/* ACT CARD LIST (スマホ用) */
-.act-list{display:none;}
-.act-card{display:flex;align-items:center;gap:10px;padding:12px 10px;border-bottom:.5px solid var(--border);cursor:pointer;border-left:3px solid transparent;transition:border-color .12s,background .12s;}
-.act-card:last-child{border-bottom:none;}
-.act-card:active{background:var(--bg2);}
-.act-card:hover{border-left-color:var(--text);background:var(--bg2);}
-.act-card-left{display:flex;flex-direction:column;gap:5px;flex:1;min-width:0;}
-.act-card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
-.act-card-no{font-size:10px;color:var(--text3);}
-.act-card-date{font-size:11px;font-weight:700;color:var(--text2);}
-.act-card-title{font-size:13px;font-weight:700;line-height:1.4;word-break:break-all;}
-.act-card-sub{font-size:11px;color:var(--text3);}
-.act-card-arrow{font-size:18px;color:var(--text3);flex-shrink:0;padding-left:4px;}
-@media(max-width:600px){
-  #activities .tbl-wrap{display:none;}
-  .act-list{display:block;}
+function isFutureDate(d){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const dt=parseDate(d); return dt&&dt>=today;
 }
 
-/* DETAIL */
-.back-btn{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--text2);background:none;border:none;cursor:pointer;margin-bottom:20px;padding:0;}
-.back-btn:hover{color:var(--text);}
-.det-header{border-bottom:2px solid var(--text);padding-bottom:18px;margin-bottom:20px;}
-.det-header h1{font-size:22px;font-weight:800;margin-bottom:8px;letter-spacing:-.03em;}
-.det-meta{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
-.det-meta span{font-size:12px;font-weight:600;color:var(--text2);}
-
-/* DETAIL INFO GRID */
-.det-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
-.det-info-item{background:var(--bg2);border-radius:var(--r);padding:10px 14px;border-left:3px solid var(--text);}
-.det-info-label{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;}
-.det-info-val{font-size:14px;font-weight:700;color:var(--text);}
-@media(max-width:400px){.det-info-grid{grid-template-columns:1fr;}}
-
-.comment-box{background:var(--bg2);border-radius:var(--rl);padding:20px 22px;border-left:4px solid var(--text);}
-.comment-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--text3);margin-bottom:10px;}
-.comment-text{font-size:14px;color:var(--text2);line-height:1.9;}
-.comment-text div+div{margin-top:6px;}
-
-/* TRIP */
-.trip-selbox{margin-bottom:16px;}
-.trip-selbox select{font-size:13px;font-weight:600;padding:8px 32px 8px 12px;border-radius:var(--r);border:1.5px solid var(--border2);background:var(--bg);color:var(--text);cursor:pointer;appearance:none;max-width:100%;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;}
-.trip-stats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;}
-.stat-chip{font-size:12px;color:var(--text2);padding:6px 12px;background:var(--bg2);border-radius:var(--r);border-left:3px solid var(--text);}
-.stat-chip strong{color:var(--text);font-weight:800;font-size:15px;}
-.day-block{margin-bottom:28px;}
-.day-label{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;padding:5px 10px;background:var(--text);color:#fff;border-radius:var(--r);display:inline-block;}
-.trip-tbl{min-width:660px;}
-.trip-tbl tr.done td{color:var(--text3);background:var(--bg2);}
-
-/* 旅程 日別タブ */
-.day-block.hidden{display:none;}
-.trip-day-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;}
-.trip-day-tab{font-size:12px;font-weight:700;padding:7px 14px;border-radius:99px;border:1.5px solid var(--border2);background:var(--bg);color:var(--text2);cursor:pointer;transition:all .12s;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;}
-.trip-day-tab:hover{background:var(--bg2);color:var(--text);}
-.trip-day-tab.active{background:var(--text);color:#fff;border-color:var(--text);}
-.trip-day-tab .tab-frac{font-size:10px;font-weight:700;opacity:.7;}
-.trip-day-tab.active .tab-frac{opacity:.85;}
-.trip-day-tab .tab-dot{width:6px;height:6px;border-radius:50%;background:#1a7a1a;flex-shrink:0;}
-/* 自動スクロール先の一時ハイライト */
-@keyframes tripFlash{0%{background:rgba(26,122,26,.18);}100%{background:transparent;}}
-.trip-tbl tr.trip-flash td{animation:tripFlash 1.6s ease;}
-.trip-card.trip-flash{animation:tripFlash 1.6s ease;}
-
-/* 旅程スマホカード */
-.trip-cards{display:none;}
-.trip-card{padding:14px 14px;border-bottom:1.5px solid var(--border2);border-left:3px solid transparent;}
-.trip-card.done{background:var(--bg2);border-left-color:var(--text3);}
-.trip-card:not(.done){border-left-color:#1a4db0;}
-.trip-card:last-child{border-bottom:none;}
-.trip-card-head{display:flex;align-items:baseline;gap:8px;margin-bottom:8px;}
-.trip-card-no{font-size:11px;color:var(--text3);font-weight:700;min-width:20px;flex-shrink:0;}
-.trip-card-title{font-size:15px;font-weight:800;flex:1;min-width:0;word-break:break-all;}
-.trip-card-title a{color:#1a4db0;text-decoration:underline;}
-.trip-card-done{font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:#e8fde8;color:#1a7a1a;flex-shrink:0;}
-.trip-card-body{display:flex;flex-direction:column;gap:4px;font-size:12px;}
-.trip-card-row{display:flex;gap:6px;align-items:baseline;}
-.trip-card-label{color:var(--text3);font-weight:700;font-size:10px;letter-spacing:.04em;white-space:nowrap;min-width:60px;}
-.trip-card-val{font-weight:600;color:var(--text);word-break:break-all;flex:1;}
-.trip-card-val a{color:#1a4db0;text-decoration:underline;font-weight:600;}
-.trip-card-val.muted{color:var(--text2);}
-.trip-card-links{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
-.trip-card-link{font-size:11px;color:#1a4db0;text-decoration:underline;font-weight:600;}
-
-@media(max-width:640px){
-  #manhole .tbl-wrap{display:none;}
-  .trip-cards{display:block;}
+// ===== バッジ色 =====
+const BADGE_PALETTE=[
+  {cls:"b-jiro",name:"二郎"},{cls:"b-mh",name:"マンホールカード"},
+  {cls:"b-road",name:"ロード"},{cls:"b-meal",name:"食事"},
+  {cls:"b-wedding",name:"結婚式"},
+  {cls:"b-c6"},{cls:"b-c7"},{cls:"b-c8"},{cls:"b-c9"},{cls:"b-c10"},
+  {cls:"b-c11"},{cls:"b-c12"},{cls:"b-c13"},{cls:"b-c14"}
+];
+let categoryClassMap={};
+function hslColorForIndex(i){
+  const hue=(i*137.508)%360;
+  return {bg:`hsl(${hue.toFixed(0)},70%,93%)`,fg:`hsl(${hue.toFixed(0)},55%,33%)`};
 }
-.done-pill{font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:#e8fde8;color:#1a7a1a;}
-.ext-link{font-size:12px;color:var(--text2);}
-.ext-link:hover{color:var(--text);}
-.addr-link{font-size:11px;color:#1a4db0;text-decoration:underline;}
-.addr-link:hover{color:#0f2d6e;}
-
-/* PROGRESS */
-.tab-bar{display:flex;gap:2px;margin-bottom:18px;border-bottom:1.5px solid var(--border);overflow-x:auto;scrollbar-width:none;}
-.tab-bar::-webkit-scrollbar{display:none;}
-.tab-btn{font-size:12px;font-weight:600;padding:7px 14px;background:none;border:none;cursor:pointer;color:var(--text2);border-bottom:2.5px solid transparent;margin-bottom:-1.5px;white-space:nowrap;}
-.tab-btn.active{color:var(--text);border-bottom-color:var(--text);font-weight:800;}
-.sort-bar{display:flex;align-items:center;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
-.sort-btn{font-size:11px;padding:4px 11px;border-radius:99px;border:.5px solid var(--border2);background:none;color:var(--text2);cursor:pointer;transition:all .12s;}
-.sort-btn:hover{background:var(--bg2);color:var(--text);}
-.sort-btn.active{background:var(--text);color:#fff;border-color:var(--text);}
-
-/* RANKING TABLE */
-.rank-section{margin-bottom:36px;}
-.rank-title{font-size:14px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:8px;padding-bottom:6px;border-bottom:1.5px solid var(--border);}
-.rank-bar-bg{flex:1;height:5px;background:var(--bg3);border-radius:2px;min-width:60px;}
-.rank-bar-fill{height:5px;border-radius:2px;}
-.rank-cnt{font-size:13px;font-weight:800;min-width:32px;text-align:right;}
-.rank-sub{font-size:11px;color:var(--text3);}
-.mpill{font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;}
-.mpill-w{background:#e8f0fd;color:#1a4db0;}
-.mpill-m{background:#e8fde8;color:#1a7a1a;}
-.mpill-k{background:#fdeee8;color:#b03a1a;}
-
-/* MEMBER TAB */
-.member-grid{display:grid;grid-template-columns:1fr;gap:10px;}
-@media(min-width:600px){.member-grid{grid-template-columns:repeat(3,1fr);}}
-.member-card{border:.5px solid var(--border);border-radius:var(--rl);padding:20px 22px;border-top:3px solid var(--text);}
-.member-bar-bg{height:5px;background:var(--bg3);border-radius:2px;margin:14px 0 10px;}
-.member-bar-fill{height:5px;border-radius:2px;}
-.mbar-w{background:#111;}
-.mbar-m{background:#1a4db0;}
-.mbar-k{background:#b03a1a;}
-.member-area-list{font-size:11px;display:grid;grid-template-columns:1fr 1fr;gap:3px 10px;margin-top:6px;}
-.mai{display:flex;justify-content:space-between;}
-.mai-name{color:var(--text3);}
-.mai-n{font-weight:800;}
-
-/* RULES */
-.rules-body{font-size:14px;line-height:1.9;}
-.rules-body p{color:var(--text2);margin-bottom:16px;}
-.rules-body h2{font-size:13px;font-weight:800;margin:28px 0 12px;padding:8px 12px;border-left:4px solid var(--text);background:var(--bg2);border-radius:0 var(--r) var(--r) 0;}
-.rules-body h2:first-of-type{margin-top:0;}
-.rules-body ol{padding-left:18px;}
-.rules-body li{margin-bottom:6px;color:var(--text2);}
-.rules-body a{color:#1a4db0;}
-
-/* RULES: 章見出し（条見出しと区別するため、罫線のみのスタイル） */
-.rules-body h2.chapter{margin:36px 0 14px;padding:0 0 6px;background:none;border-left:none;border-radius:0;border-bottom:2px solid var(--text);font-size:12px;letter-spacing:.12em;color:var(--text2);}
-.rules-body h2.chapter:first-of-type{margin-top:0;}
-.rules-body h2.chapter + h2{margin-top:14px;}
-
-/* 参加者ピル */
-.p-pills{display:flex;gap:4px;flex-wrap:wrap;}
-.p-pill{font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;display:inline-block;}
-.p-in{background:var(--bg2);color:var(--text);border:.5px solid var(--border2);}
-.p-out{background:transparent;color:var(--text3);border:.5px solid var(--border);text-decoration:line-through;}
-
-/* 詳細ページの参加者 */
-.det-participants{margin-bottom:20px;}
-.det-participants .det-info-label{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
-
-/* 参加フィルター行と分類フィルター行の間に余白 */
-#participation-bar{margin-bottom:6px;}
-
-.loading{padding:32px 0;text-align:center;color:var(--text3);font-size:13px;position:relative;}
-.loading::after{content:"";display:inline-block;width:14px;height:14px;margin-left:8px;border-radius:50%;border:2px solid var(--border2);border-top-color:var(--text3);vertical-align:middle;animation:spin .7s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
-
-/* MYPAGE */
-.member-pills{display:flex;gap:8px;margin-bottom:24px;border-bottom:.5px solid var(--border);padding-bottom:14px;}
-.member-pill{font-size:13px;font-weight:600;padding:6px 16px;border-radius:99px;border:.5px solid var(--border2);background:none;color:var(--text2);cursor:pointer;transition:all .12s;}
-.member-pill:hover{background:var(--bg2);color:var(--text);}
-.member-pill.active{background:var(--text);color:#fff;border-color:var(--text);}
-.badge-section{margin-bottom:28px;}
-.badge-section-label{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;padding-bottom:6px;border-bottom:1.5px solid var(--border);}
-.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:14px 8px;}
-.badge-item{text-align:center;}
-.badge-circle{width:56px;height:56px;margin:0 auto 6px;transition:transform .15s;}
-.badge-item.earned .badge-circle{filter:drop-shadow(0 4px 10px rgba(0,0,0,.07));}
-.badge-item:not(.earned){opacity:.45;}
-.badge-circle svg{width:100%;height:100%;display:block;}
-.badge-name{font-size:11px;font-weight:700;margin:0;}
-.badge-item:not(.earned) .badge-name{color:var(--text2);}
-.badge-frac{font-size:10px;color:var(--text3);margin:0;font-variant-numeric:tabular-nums;}
-.mypage-total{display:flex;align-items:center;gap:16px;margin-bottom:28px;padding:16px;background:var(--bg2);border-radius:var(--rl);border-left:3px solid var(--text);}
-.mypage-total .badge-circle{margin:0;flex-shrink:0;}
-.mypage-total-label{font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;}
-.mypage-total-val{font-size:20px;font-weight:800;letter-spacing:-.02em;}
-.mypage-total-val .unit{font-size:12px;color:var(--text2);font-weight:400;}
-
-/* ===== CYCLE (自転車旅) ===== */
-.cycle-hero{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;}
-.cycle-stat{flex:1;min-width:130px;background:var(--bg2);border-radius:var(--rl);padding:14px 16px;border-left:3px solid #1a7a1a;}
-.cycle-stat .cs-label{font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
-.cycle-stat .cs-val{font-size:24px;font-weight:800;letter-spacing:-.03em;line-height:1;}
-.cycle-stat .cs-unit{font-size:12px;color:var(--text2);font-weight:400;margin-left:2px;}
-.cycle-selbox{margin-bottom:18px;}
-.cycle-selbox select{font-size:13px;font-weight:600;padding:8px 32px 8px 12px;border-radius:var(--r);border:1.5px solid var(--border2);background:var(--bg);color:var(--text);cursor:pointer;appearance:none;max-width:100%;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;}
-
-/* 自転車旅タイムライン (PC) */
-.cycle-tbl{min-width:520px;}
-.cycle-tbl td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
-.cycle-tbl .dest-cell{font-weight:700;}
-.cycle-tbl tr.lunch td{background:#fdf5e8;}
-.cycle-tbl .arrive-cell{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;color:#1a7a1a;}
-
-/* 自転車旅カード (スマホ) - タイムライン */
-.cycle-cards{display:none;}
-.cycle-card{display:flex;gap:12px;padding:0 4px;}
-.cycle-card.lunch .cc-body{background:#fdf5e8;border-radius:var(--r);padding:8px 10px;margin:2px 0;}
-.cc-time{display:flex;flex-direction:column;align-items:flex-end;min-width:46px;flex-shrink:0;padding-top:2px;}
-.cc-time .cc-arrive{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1;color:#1a7a1a;}
-.cc-time .cc-arrive-lbl{font-size:8px;color:var(--text3);font-weight:700;letter-spacing:.06em;margin-top:0;}
-.cc-line{display:flex;flex-direction:column;align-items:center;min-width:14px;flex-shrink:0;}
-.cc-dot{width:9px;height:9px;border-radius:50%;background:#1a7a1a;margin-top:6px;flex-shrink:0;border:2px solid var(--bg);box-shadow:0 0 0 1.5px #1a7a1a;}
-.cc-dot.lunch{background:#9a6810;box-shadow:0 0 0 1.5px #9a6810;}
-.cc-bar{flex:1;width:2px;background:var(--border2);margin:3px 0;min-height:18px;}
-.cc-body{flex:1;min-width:0;padding-bottom:14px;}
-.cc-no{font-size:10px;color:var(--text3);font-weight:700;}
-.cc-dest{font-size:15px;font-weight:800;word-break:break-all;line-height:1.3;margin-top:1px;}
-.cc-meta{display:flex;gap:14px;margin-top:4px;flex-wrap:wrap;}
-.cc-meta span{font-size:11px;color:var(--text2);}
-.cc-meta b{font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;}
-.cc-lunch-tag{font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px;background:#fdf5e8;color:#9a6810;margin-left:6px;vertical-align:middle;}
-@media(max-width:640px){
-  #cycle .tbl-wrap{display:none;}
-  .cycle-cards{display:block;}
+function assignCategoryColors(cats){
+  categoryClassMap={};
+  const usedCls=new Set();
+  cats.forEach(cat=>{const known=BADGE_PALETTE.find(p=>p.name===cat);if(known){categoryClassMap[cat]={cls:known.cls};usedCls.add(known.cls);}});
+  let pi=0,overflowIdx=0;
+  cats.forEach(cat=>{
+    if(categoryClassMap[cat]) return;
+    while(pi<BADGE_PALETTE.length&&usedCls.has(BADGE_PALETTE[pi].cls)) pi++;
+    if(pi<BADGE_PALETTE.length){categoryClassMap[cat]={cls:BADGE_PALETTE[pi].cls};usedCls.add(BADGE_PALETTE[pi].cls);pi++;}
+    else{categoryClassMap[cat]={style:hslColorForIndex(overflowIdx)};overflowIdx++;}
+  });
 }
+function mkBadge(c){
+  const m=categoryClassMap[c];
+  if(m&&m.cls) return `<span class="badge ${m.cls}">${c}</span>`;
+  if(m&&m.style) return `<span class="badge" style="background:${m.style.bg};color:${m.style.fg}">${c}</span>`;
+  return `<span class="badge b-other">${c}</span>`;
+}
+
+// ===== 参加者ピル =====
+function mkParticipantPills(a){
+  const ms=[{name:"西川",j:a.joinedW},{name:"森角",j:a.joinedM},{name:"小林",j:a.joinedK}];
+  return `<span class="p-pills">${ms.map(m=>
+    `<span class="p-pill ${m.j?'p-in':'p-out'}">${m.name}</span>`
+  ).join("")}</span>`;
+}
+
+// ===== CSV =====
+async function fetchCSV(url){
+  const res=await fetch(url);
+  const text=await res.text();
+  return new Promise(resolve=>Papa.parse(text,{header:true,skipEmptyLines:true,complete:resolve}));
+}
+
+// ===== ACTIVITY =====
+async function loadActivity(){
+  const r=await fetchCSV(URL_ACT);
+  activities=r.data.filter(d=>d.No&&/^\d+$/.test(d.No.trim())).map(d=>{
+    const rawW=(d["西川"]||"").trim();
+    const rawM=(d["森角"]||"").trim();
+    const rawK=(d["小林"]||"").trim();
+    const joinedW=rawW!=="×";
+    const joinedM=rawM!=="×";
+    const joinedK=rawK!=="×";
+    const distW=joinedW&&rawW!==""&&!isNaN(parseFloat(rawW))?rawW:"";
+    const distM=joinedM&&rawM!==""&&!isNaN(parseFloat(rawM))?rawM:"";
+    const distK=joinedK&&rawK!==""&&!isNaN(parseFloat(rawK))?rawK:"";
+    return {
+      no:Number(d.No),date:d["日付"]||"",cat:d["分類"]||"",
+      title:d["活動内容"]||"",
+      distW,distM,distK,
+      distBike:d["自転車"]||"",
+      comment:d["コメント"]||"",
+      joinedW,joinedM,joinedK,
+      joinedCount:(joinedW?1:0)+(joinedM?1:0)+(joinedK?1:0),
+      allJoined:joinedW&&joinedM&&joinedK
+    };
+  });
+
+  const cats=[...new Set(activities.map(a=>a.cat).filter(Boolean))];
+  assignCategoryColors(cats);
+  const bar=document.getElementById("filter-bar");
+  cats.forEach(cat=>{
+    const btn=document.createElement("button");
+    btn.className="filter-btn";
+    btn.textContent=cat;
+    btn.onclick=function(){filterAct(cat,this);};
+    bar.appendChild(btn);
+  });
+  renderTopKPIs();
+  renderTop();
+  renderActTable();
+}
+
+// ===== KPIセクション描画 =====
+function buildKPIHtml(acts){
+  const MKEYS=[
+    {name:"西川",distKey:"distW",joinKey:"joinedW",mhKey:"w"},
+    {name:"森角",distKey:"distM",joinKey:"joinedM",mhKey:"m"},
+    {name:"小林",distKey:"distK",joinKey:"joinedK",mhKey:"k"}
+  ];
+  const actCount=acts.length;
+  const actCard=`<div class="kpi-act-card"><div class="kpi-label">活動回数</div><div class="kpi-val">${actCount}<span class="kpi-unit"> 回</span></div></div>`;
+
+  const memberCards=MKEYS.map(mem=>{
+    const joinCount=acts.filter(a=>a[mem.joinKey]).length;
+    const driven=acts.filter(a=>a[mem.distKey]&&a[mem.distKey].trim()!=="");
+    const totalDist=driven.reduce((s,a)=>{const v=parseFloat(a[mem.distKey]);return s+(isNaN(v)?0:v);},0);
+    const mhCount=mhReady?mhData.filter(d=>d[mem.mhKey]).length:"—";
+
+    return `<div class="kpi-member-card">
+      <div class="kpi-member-name">${mem.name}</div>
+      <div class="kpi-member-section-label">取得</div>
+      <div class="kpi-member-val">${mhCount}<span class="unit">枚</span></div>
+      <hr class="kpi-member-divider">
+      <div class="kpi-member-section-label">参加</div>
+      <div class="kpi-member-val">${joinCount}<span class="unit"> / ${actCount}回</span></div>
+      <hr class="kpi-member-divider">
+      <div class="kpi-member-section-label">運転</div>
+      <div class="kpi-member-val">${driven.length}<span class="unit">回</span></div>
+      <div class="kpi-member-val">${totalDist.toFixed(1)}<span class="unit">km</span></div>
+    </div>`;
+  }).join("");
+
+  return actCard+`<div class="kpi-members">${memberCards}</div>`;
+}
+
+let currentKPIMode="full"; // "all" or "full"
+
+function filterByParticipation(acts,mode){
+  if(mode==="full") return acts.filter(a=>a.allJoined);
+  if(mode==="partial") return acts.filter(a=>a.joinedCount===2);
+  return acts;
+}
+
+function toggleKPI(mode,btn){
+  currentKPIMode=mode;
+  document.querySelectorAll("#kpi-toggle .filter-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  renderTopKPIs();
+}
+
+function renderTopKPIs(){
+  const pastAll=activities.filter(a=>!isFutureDate(a.date));
+  const acts=filterByParticipation(pastAll,currentKPIMode);
+  document.getElementById("kpi-section").innerHTML=buildKPIHtml(acts);
+}
+
+// ===== TOP ページ =====
+function renderTop(){
+  const upcoming=activities.filter(a=>isFutureDate(a.date))
+    .sort((a,b)=>parseDate(a.date)-parseDate(b.date)).slice(0,5);
+  if(upcoming.length){
+    document.getElementById("top-upcoming").innerHTML=upcoming.map(a=>`
+      <div class="upcoming-row">
+        <span class="upcoming-date">${a.date}</span>
+        <div class="rec-badge">${mkBadge(a.cat)}</div>
+        <span class="upcoming-title">${a.title}</span>
+      </div>`).join("");
+  } else {
+    document.getElementById("top-upcoming").innerHTML=`<div class="upcoming-empty">予定はありません</div>`;
+  }
+
+  const recent=activities.filter(a=>!isFutureDate(a.date)).reverse().slice(0,5);
+  document.getElementById("top-recent").innerHTML=recent.map(a=>{
+    const subParts=[];
+    if(a.distW) subParts.push(`西川：${a.distW}km`);
+    if(a.distM) subParts.push(`森角：${a.distM}km`);
+    if(a.distK) subParts.push(`小林：${a.distK}km`);
+    if(a.distBike) subParts.push(`自転車：${a.distBike}km`);
+    return `
+    <div class="act-card" onclick="showDetail(${a.no})">
+      <div class="act-card-left">
+        <div class="act-card-meta">
+          <span class="act-card-no">No.${a.no}</span>
+          <span class="act-card-date">${a.date}</span>
+          ${mkBadge(a.cat)}
+          ${mkParticipantPills(a)}
+        </div>
+        <div class="act-card-title">${a.title}</div>
+        ${subParts.length?`<div class="act-card-sub">${subParts.join('　')}</div>`:''}
+      </div>
+      <div class="act-card-arrow">›</div>
+    </div>`;
+  }).join("");
+}
+
+// ===== 実績ページ =====
+function filterParticipation(mode,btn){
+  currentParticipation=mode;
+  document.querySelectorAll("#participation-bar .filter-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  renderActTable();
+}
+function filterAct(cat,btn){
+  currentCatFilter=cat;
+  document.querySelectorAll("#filter-bar .filter-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  renderActTable();
+}
+function renderActTable(){
+  const pastActs=activities.filter(a=>!isFutureDate(a.date));
+  let list=filterByParticipation(pastActs,currentParticipation);
+  if(currentCatFilter!=="all") list=list.filter(a=>a.cat===currentCatFilter);
+  const sorted=[...list].reverse();
+
+  document.getElementById("act-tbody").innerHTML=sorted.map(a=>`
+    <tr>
+      <td style="color:var(--text3);font-size:11px">${a.no}</td>
+      <td style="font-size:11px;color:var(--text2);white-space:nowrap">${a.date}</td>
+      <td class="badge-cell">${mkBadge(a.cat)}</td>
+      <td class="title-cell">${a.title} ${mkParticipantPills(a)}</td>
+      <td><button class="det-btn" onclick="showDetail(${a.no})">詳細</button></td>
+    </tr>`).join("")||"<tr><td colspan=\"5\" style=\"padding:20px;color:var(--text3);text-align:center\">該当なし</td></tr>";
+
+  document.getElementById("act-list").innerHTML=sorted.map(a=>{
+    const subParts=[];
+    if(a.distW) subParts.push(`西川：${a.distW}km`);
+    if(a.distM) subParts.push(`森角：${a.distM}km`);
+    if(a.distK) subParts.push(`小林：${a.distK}km`);
+    if(a.distBike) subParts.push(`自転車：${a.distBike}km`);
+    return `
+    <div class="act-card" onclick="showDetail(${a.no})">
+      <div class="act-card-left">
+        <div class="act-card-meta">
+          <span class="act-card-no">No.${a.no}</span>
+          <span class="act-card-date">${a.date}</span>
+          ${mkBadge(a.cat)}
+          ${mkParticipantPills(a)}
+        </div>
+        <div class="act-card-title">${a.title}</div>
+        ${subParts.length?`<div class="act-card-sub">${subParts.join('　')}</div>`:''}
+      </div>
+      <div class="act-card-arrow">›</div>
+    </div>`;
+  }).join("")||"<div style=\"padding:20px;color:var(--text3);text-align:center\">該当なし</div>";
+}
+
+// ===== 詳細ページ =====
+function goBackFromDetail(){
+  if(history.state&&history.state.page==="detail"&&history.length>1){ history.back(); }
+  else { goto("activities"); }
+}
+function showDetail(no,push=true){
+  const a=activities.find(x=>x.no===no); if(!a) return;
+  document.getElementById("det-title").textContent=a.title;
+  document.getElementById("det-date").textContent=a.date;
+  document.getElementById("det-badge").innerHTML=mkBadge(a.cat);
+
+  // 参加者
+  const ms=[{name:"西川",j:a.joinedW},{name:"森角",j:a.joinedM},{name:"小林",j:a.joinedK}];
+  document.getElementById("det-participants").innerHTML=`
+    <div class="det-participants">
+      <div class="det-info-label">参加者</div>
+      <div class="p-pills">${ms.map(m=>
+        `<span class="p-pill ${m.j?'p-in':'p-out'}" style="font-size:12px;padding:4px 10px">${m.name}${m.j?'':'　×'}</span>`
+      ).join("")}</div>
+    </div>`;
+
+  // 距離
+  const infoItems=[];
+  if(a.distW) infoItems.push(`<div class="det-info-item"><div class="det-info-label">西川</div><div class="det-info-val">${a.distW} km</div></div>`);
+  if(a.distM) infoItems.push(`<div class="det-info-item"><div class="det-info-label">森角</div><div class="det-info-val">${a.distM} km</div></div>`);
+  if(a.distK) infoItems.push(`<div class="det-info-item"><div class="det-info-label">小林</div><div class="det-info-val">${a.distK} km</div></div>`);
+  if(a.distBike) infoItems.push(`<div class="det-info-item"><div class="det-info-label">自転車</div><div class="det-info-val">${a.distBike} km</div></div>`);
+  const grid=document.getElementById("det-info-grid");
+  grid.innerHTML=infoItems.join("");
+  grid.style.display=infoItems.length?"grid":"none";
+
+  const commentEl=document.getElementById("det-comment");
+  const raw=a.comment||"（コメントは後で追加予定）";
+  let first=true;
+  commentEl.innerHTML=raw.replace(/#/g,()=>{if(first){first=false;return '#';}return '<br>#';});
+  applyPage("detail");
+  if(push){
+    const hash="#detail-"+no;
+    if(location.hash!==hash) history.pushState({page:"detail",no},"",hash);
+  }
+}
+
+// ===== TRIP =====
+const EXCLUDE=["徒歩","電車","新幹線","朝食","昼食","夕食","ホテル","観光","ー"];
+let currentTripName=null, currentTripDay=0;
+async function loadTrip(){
+  const r=await fetchCSV(URL_TRIP);
+  const res={};
+  r.data.forEach(o=>{
+    if(!o["旅行日"]||!o["旅行日"].trim()) return;
+    const name=`${o["旅行日"]} ${o["旅行タイトル"]}`;
+    const day=Number(o["何日目"]);
+    if(!res[name]) res[name]={days:[],walica:""};
+    if(!res[name].walica && o["Walica"] && o["Walica"].trim()) res[name].walica=o["Walica"].trim();
+    while(res[name].days.length<day) res[name].days.push([]);
+    res[name].days[day-1].push({
+      departure:o["出発時刻"]||"",arrival:o["到着時刻"]||"",
+      distance:o["距離(km)"]||"",city:o["市区町村"]||"",
+      title:o["訪問先名"]||"",time:o["営業時間"]||"",
+      address:o["訪問先住所"]||"",url:o["URL"]||"",
+      mhUrl:o["マンホールURL"]||"",done:o["収集済"]==="済"
+    });
+  });
+  trips=res;
+  const sel=document.getElementById("trip-sel");
+  sel.innerHTML=Object.keys(trips).map(n=>`<option value="${n}">${n}</option>`).join("");
+  sel.onchange=()=>{ renderTrip(sel.value); maybeScrollTripDone(); };
+  if(sel.options.length) renderTrip(sel.value);
+  maybeScrollTripDone();
+}
+function renderTrip(name, opts){
+  opts=opts||{};
+  const data=trips[name]; if(!data) return;
+  const isNewTrip = name!==currentTripName;
+  currentTripName=name;
+  if(opts.day!=null){currentTripDay=opts.day;}
+  else if(isNewTrip||opts.resetDay){const f=findTripFrontierDay(data);currentTripDay=(f!=null)?f:0;}
+  if(currentTripDay<0) currentTripDay=0;
+  if(currentTripDay>data.days.length-1) currentTripDay=data.days.length-1;
+
+  let dist=0,spots=0,done=0;
+  data.days.forEach(day=>day.forEach(i=>{
+    const d=parseFloat(i.distance); if(!isNaN(d)) dist+=d;
+    if(!EXCLUDE.includes(i.city)){spots++; if(i.done) done++;}
+  }));
+  document.getElementById("trip-stats").innerHTML=`
+    <div class="stat-chip">総距離 <strong>${dist.toFixed(1)} km</strong></div>
+    <div class="stat-chip">訪問予定 <strong>${spots} 件</strong></div>
+    <div class="stat-chip">収集済 <strong>${done} 枚</strong></div>
+    ${data.walica?`<a class="stat-chip" href="${data.walica}" target="_blank" style="color:#1a4db0;font-weight:700;text-decoration:none"> Walica URL</a>`:''}`;
+
+  document.getElementById("trip-day-tabs").innerHTML=data.days.map((day,idx)=>{
+    let ds=0,dd=0;
+    day.forEach(i=>{ if(!EXCLUDE.includes(i.city)){ds++; if(i.done) dd++;} });
+    const frac=ds>0?`<span class="tab-frac">${dd}/${ds}</span>`:'';
+    const dot=dd>0?`<span class="tab-dot"></span>`:'';
+    return `<button class="trip-day-tab${idx===currentTripDay?' active':''}" onclick="selectTripDay(${idx})">${idx+1}日目${frac}${dot}</button>`;
+  }).join("");
+
+  document.getElementById("trip-days").innerHTML=data.days.map((day,idx)=>{
+    let lastDone=-1;
+    day.forEach((i,i2)=>{ if(i.done) lastDone=i2; });
+    return `
+    <div class="day-block${idx===currentTripDay?'':' hidden'}" data-day="${idx}">
+      <div class="day-label">${idx+1}日目</div>
+      <div class="tbl-wrap"><table class="trip-tbl">
+        <thead><tr><th>No</th><th>済</th><th>出発</th><th>到着</th><th>距離</th><th>市区町村</th><th>目的地</th><th>営業時間</th><th>住所</th><th>GKP</th></tr></thead>
+        <tbody>${day.map((i,i2)=>`
+          <tr class="${i.done?'done':''}${i2===lastDone?' done-last':''}">
+            <td style="color:var(--text3);font-size:11px">${i2+1}</td>
+            <td>${i.done?'<span class="done-pill">済</span>':''}</td>
+            <td style="font-size:12px;color:var(--text2);white-space:nowrap">${i.departure}</td>
+            <td style="font-size:12px;color:var(--text2);white-space:nowrap">${i.arrival}</td>
+            <td style="font-size:12px;color:var(--text2)">${i.distance}</td>
+            <td style="font-size:12px">${i.city}</td>
+            <td style="font-size:12px;font-weight:600">${i.url?`<a href="${i.url}" target="_blank" style="color:#1a4db0;font-weight:600">${i.title}</a>`:i.title}</td>
+            <td style="font-size:11px;color:var(--text2);white-space:nowrap">${i.time}</td>
+            <td style="font-size:11px"><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(i.address)}" target="_blank" class="addr-link">${i.address}</a></td>
+            <td>${i.mhUrl?`<a href="${i.mhUrl}" target="_blank" class="ext-link">↗</a>`:''}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>
+      <div class="trip-cards">${day.map((i,i2)=>{
+        const timeRow=(i.departure||i.arrival||i.distance)?`${i.departure||''}～${i.arrival||''}${i.distance?`（${i.distance}km）`:''}`:'';
+        const rows=[
+          i.city?`<div class="trip-card-row"><span class="trip-card-label">市区町村</span><span class="trip-card-val muted">${i.city}</span></div>`:'',
+          i.time?`<div class="trip-card-row"><span class="trip-card-label">営業時間</span><span class="trip-card-val muted">${i.time}</span></div>`:'',
+          timeRow?`<div class="trip-card-row"><span class="trip-card-label">所要時間</span><span class="trip-card-val muted">${timeRow}</span></div>`:'',
+          i.address?`<div class="trip-card-row"><span class="trip-card-label">住所</span><span class="trip-card-val"><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(i.address)}" target="_blank">${i.address}</a></span></div>`:'',
+          i.mhUrl?`<div class="trip-card-row"><span class="trip-card-label">GKP</span><span class="trip-card-val"><a href="${i.mhUrl}" target="_blank">↗ カード</a></span></div>`:'',
+        ].filter(Boolean).join('');
+        return`<div class="trip-card${i.done?' done':''}${i2===lastDone?' done-last':''}">
+          <div class="trip-card-head">
+            <span class="trip-card-no">${i2+1}</span>
+            <span class="trip-card-title">${i.url?`<a href="${i.url}" target="_blank">${i.title}</a>`:i.title}</span>
+            ${i.done?'<span class="trip-card-done">済</span>':''}
+          </div>
+          ${rows?`<div class="trip-card-body">${rows}</div>`:''}
+        </div>`;
+      }).join('')}</div>
+    </div>`;
+  }).join("");
+}
+function findTripFrontierDay(data){
+  let last=null;
+  data.days.forEach((day,di)=>{ day.forEach(it=>{ if(it.done) last=di; }); });
+  return last;
+}
+function selectTripDay(idx){
+  if(!currentTripName) return;
+  renderTrip(currentTripName,{day:idx});
+  scrollTripToTop();
+}
+function prefersReduced(){
+  return !!(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+}
+function scrollTripToTop(){
+  const anchor=document.getElementById("trip-day-tabs");
+  if(!anchor) return;
+  const nav=document.querySelector("nav");
+  const navH=nav?nav.offsetHeight:0;
+  const y=window.scrollY+anchor.getBoundingClientRect().top-navH-8;
+  window.scrollTo({top:Math.max(0,y),behavior:prefersReduced()?"auto":"smooth"});
+}
+function scrollTripToDone(){
+  const container=document.getElementById("trip-days");
+  if(!container) return;
+  const block=container.querySelector(".day-block:not(.hidden)");
+  if(!block) return;
+  let el=null;
+  block.querySelectorAll(".done-last").forEach(m=>{ if(m.getClientRects().length) el=m; });
+  if(!el) return;
+  const nav=document.querySelector("nav");
+  const navH=nav?nav.offsetHeight:0;
+  const y=window.scrollY+el.getBoundingClientRect().top-navH-14;
+  window.scrollTo({top:Math.max(0,y),behavior:prefersReduced()?"auto":"smooth"});
+  el.classList.remove("trip-flash"); void el.offsetWidth; el.classList.add("trip-flash");
+  setTimeout(()=>el.classList.remove("trip-flash"),1700);
+}
+function maybeScrollTripDone(){
+  requestAnimationFrame(()=>requestAnimationFrame(scrollTripToDone));
+}
+
+// ===== CYCLE =====
+async function loadCycle(){
+  let r;
+  try{ r=await fetchCSV(URL_CYCLE); }
+  catch(e){ document.getElementById("cycle-body").innerHTML=`<div class="loading">読み込みに失敗しました</div>`; return; }
+  const rows=r.data.map(o=>{
+    const dest=(o["目的地"]||"").trim();
+    const dist=(o["距離(km)"]||o["距離"]||"").trim();
+    const dur=(o["所要時間(分)"]||o["所要時間"]||"").trim();
+    let arrive=(o["到着時刻"]||o["時刻"]||o["到着"]||"").trim();
+    if(!arrive){for(const k in o){if(["目的地","距離(km)","距離","所要時間(分)","所要時間"].includes(k)) continue;const v=(o[k]||"").trim();if(v){arrive=v;break;}}}
+    return {dest,dist,dur,arrive};
+  }).filter(x=>x.dest);
+  cycleData=rows;
+  const sel=document.getElementById("cycle-sel");
+  sel.innerHTML=`<option value="all">姫路市立中学校 全校めぐり</option>`;
+  sel.onchange=()=>renderCycle();
+  renderCycle();
+}
+function fmtArrive(s){
+  if(!s) return "";
+  const m=s.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if(!m) return s;
+  return `${Number(m[1])}:${m[2]}`;
+}
+function subtractMinutes(timeStr,minStr){
+  const m=(timeStr||"").match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+  const mins=parseInt(minStr,10);
+  if(!m||isNaN(mins)) return timeStr||"";
+  let total=Number(m[1])*60+Number(m[2])-mins;
+  if(total<0) total+=24*60;
+  const h=Math.floor(total/60),mm=total%60;
+  return `${h}:${String(mm).padStart(2,"0")}`;
+}
+function renderCycle(){
+  const rows=cycleData;
+  if(!rows.length){document.getElementById("cycle-body").innerHTML=`<div class="loading">データがありません</div>`;document.getElementById("cycle-hero").innerHTML="";return;}
+  let totalDist=0,lunchCount=0;
+  rows.forEach(i=>{const d=parseFloat(i.dist);if(!isNaN(d)) totalDist+=d;if(i.dest.includes("昼食")) lunchCount++;});
+  const spots=rows.length-lunchCount;
+  const lastArrive=fmtArrive(rows[rows.length-1].arrive);
+  const startTime=fmtArrive(subtractMinutes(rows[0].arrive,rows[0].dur));
+  document.getElementById("cycle-hero").innerHTML=`
+    <div class="cycle-stat"><div class="cs-label">訪問先</div><div class="cs-val">${spots}<span class="cs-unit">校</span></div></div>
+    <div class="cycle-stat"><div class="cs-label">総走行距離</div><div class="cs-val">${totalDist.toFixed(1)}<span class="cs-unit">km</span></div></div>
+    <div class="cycle-stat"><div class="cs-label">行程</div><div class="cs-val" style="font-size:18px">${startTime}<span class="cs-unit" style="margin:0 4px">→</span>${lastArrive}</div></div>`;
+  const tbl=`<div class="tbl-wrap"><table class="cycle-tbl">
+    <thead><tr><th style="width:36px">No</th><th>目的地</th><th style="width:90px;text-align:right">距離(km)</th><th style="width:96px;text-align:right">所要時間</th><th style="width:90px;text-align:right">到着時刻</th></tr></thead>
+    <tbody>${rows.map((i,idx)=>{const isLunch=i.dest.includes("昼食");return `<tr class="${isLunch?'lunch':''}"><td style="color:var(--text3);font-size:11px">${idx+1}</td><td class="dest-cell">${i.dest}${isLunch?'<span class="cc-lunch-tag">昼食</span>':''}</td><td class="num">${i.dist||'—'}</td><td class="num">${i.dur?i.dur+' 分':'—'}</td><td class="arrive-cell num">${fmtArrive(i.arrive)||'—'}</td></tr>`;}).join('')}</tbody></table></div>`;
+  const cards=`<div class="cycle-cards">${rows.map((i,idx)=>{const isLunch=i.dest.includes("昼食");const isLast=idx===rows.length-1;return `<div class="cycle-card${isLunch?' lunch':''}"><div class="cc-time"><span class="cc-arrive">${fmtArrive(i.arrive)||'—'}</span><span class="cc-arrive-lbl">着</span></div><div class="cc-line"><span class="cc-dot${isLunch?' lunch':''}"></span>${isLast?'':'<span class="cc-bar"></span>'}</div><div class="cc-body"><span class="cc-no">No.${idx+1}</span><div class="cc-dest">${i.dest}${isLunch?'<span class="cc-lunch-tag">昼食</span>':''}</div><div class="cc-meta">${i.dist?`<span>距離 <b>${i.dist}km</b></span>`:''}${i.dur?`<span>所要 <b>${i.dur}分</b></span>`:''}</div></div></div>`;}).join('')}</div>`;
+  document.getElementById("cycle-body").innerHTML=tbl+cards;
+}
+
+// ===== MH DATA =====
+async function loadMH(){
+  const r=await fetchCSV(URL_MH);
+  mhData=r.data.filter(d=>d.No&&/^\d+$/.test(d.No.trim())).map(d=>({
+    no:Number(d.No),area:d["エリア"]||"",pref:d["都道府県"]||"",city:d["市区町村"]||"",
+    imgUrl:d["画像URL"]||"",code:d["コード"]||"",round:(d["弾数"]||"").trim(),
+    w:!!(d["取得日"]&&d["取得日"].trim()),
+    m:d["森角"]==="済",
+    k:(d["小林"]||"").replace(/\r/,"").trim()==="済"
+  }));
+  renderProgress();
+  mhReady=true;
+  // KPIの取得枚数を更新
+  renderTopKPIs();
+  renderMyPage();
+}
+
+const AREAS=["北海道","東北","関東","中部","北陸","近畿","中国","四国","九州"];
+const PREF_CODE={"北海道":1,"青森":2,"岩手":3,"宮城":4,"秋田":5,"山形":6,"福島":7,"茨城":8,"栃木":9,"群馬":10,"埼玉":11,"千葉":12,"東京":13,"神奈川":14,"新潟":15,"富山":16,"石川":17,"福井":18,"山梨":19,"長野":20,"岐阜":21,"静岡":22,"愛知":23,"三重":24,"滋賀":25,"京都":26,"大阪":27,"兵庫":28,"奈良":29,"和歌山":30,"鳥取":31,"島根":32,"岡山":33,"広島":34,"山口":35,"徳島":36,"香川":37,"愛媛":38,"高知":39,"福岡":40,"佐賀":41,"長崎":42,"熊本":43,"大分":44,"宮崎":45,"鹿児島":46,"沖縄":47};
+const MEMBERS=[{name:"西川",key:"w",col:"#1a4db0",pillCls:"mpill-w"},{name:"森角",key:"m",col:"#1a7a1a",pillCls:"mpill-m"},{name:"小林",key:"k",col:"#b03a1a",pillCls:"mpill-k"}];
+
+// ===== MYPAGE =====
+function normalizePrefName(name){ return (name||"").trim().replace(/(都|府|県)$/,""); }
+function starPoints(cx,cy,rOuter,rInner){
+  const pts=[];
+  for(let i=0;i<10;i++){const r=i%2===0?rOuter:rInner;const a=(Math.PI/5)*i-Math.PI/2;pts.push(`${(cx+r*Math.cos(a)).toFixed(1)},${(cy+r*Math.sin(a)).toFixed(1)}`);}
+  return pts.join(" ");
+}
+function badgeSVG(innerSVG,obtained,total){
+  const r=25,c=2*Math.PI*r;
+  const pct=total>0?Math.max(0,Math.min(1,obtained/total)):0;
+  const dash=(pct*c).toFixed(1);
+  const earned=obtained>0;
+  const color=earned?"var(--text)":"var(--text3)";
+  return `<svg viewBox="0 0 56 56" style="color:${color}"><circle cx="28" cy="28" r="${r}" fill="var(--bg2)"></circle><circle cx="28" cy="28" r="${r}" fill="none" stroke="var(--border)" stroke-width="2.5"></circle><circle cx="28" cy="28" r="${r}" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="${dash} ${c.toFixed(1)}" transform="rotate(-90 28 28)"></circle>${innerSVG}</svg>`;
+}
+function renderMypagePills(){
+  const bar=document.getElementById("mypage-pills");
+  if(!bar) return;
+  bar.innerHTML=MEMBERS.map(mem=>`<button class="member-pill${mem.key===currentMypageMember?" active":""}" onclick="selectMypageMember('${mem.key}')">${mem.name}</button>`).join("");
+}
+function selectMypageMember(key){ currentMypageMember=key; renderMyPage(); }
+function renderMyPage(){
+  renderMypagePills();
+  if(!mhReady) return;
+  const key=currentMypageMember;
+  const totalObtained=mhData.filter(d=>d[key]).length;
+  const totalAll=mhData.length;
+  const starSvg=`<polygon points="${starPoints(28,28,12,5)}" fill="currentColor"></polygon>`;
+  const totalHtml=`<div class="mypage-total"><div class="badge-circle">${badgeSVG(starSvg,totalObtained,totalAll)}</div><div><div class="mypage-total-label">総取得枚数バッジ</div><div class="mypage-total-val">${totalObtained}<span class="unit"> / ${totalAll}枚</span></div></div></div>`;
+  const prefGroups={};
+  mhData.forEach(d=>{if(!d.pref) return;const name=normalizePrefName(d.pref);if(!prefGroups[name]) prefGroups[name]={total:0,obtained:0};prefGroups[name].total++;if(d[key]) prefGroups[name].obtained++;});
+  const prefNames=Object.keys(prefGroups).sort((a,b)=>(PREF_CODE[a]||99)-(PREF_CODE[b]||99));
+  const prefBadges=prefNames.map(name=>{
+    const g=prefGroups[name];const earned=g.obtained>0;const shape=PREF_SHAPES[name];
+    const shapeSvg=shape?`<svg x="14" y="14" width="28" height="28" viewBox="${shape.vb}"><polygon points="${shape.p}" fill="currentColor"></polygon></svg>`:"";
+    return `<div class="badge-item${earned?" earned":""}"><div class="badge-circle">${badgeSVG(shapeSvg,g.obtained,g.total)}</div><p class="badge-name">${name}</p><p class="badge-frac">${g.obtained}/${g.total}</p></div>`;
+  }).join("");
+  const roundGroups={};
+  mhData.forEach(d=>{const r=d.round;if(!r) return;if(!roundGroups[r]) roundGroups[r]={total:0,obtained:0};roundGroups[r].total++;if(d[key]) roundGroups[r].obtained++;});
+  const roundKeys=Object.keys(roundGroups).sort((a,b)=>{const an=parseFloat(a),bn=parseFloat(b);if(!isNaN(an)&&!isNaN(bn)) return an-bn;return a.localeCompare(b,"ja");});
+  const roundBadges=roundKeys.map(r=>{
+    const g=roundGroups[r];const earned=g.obtained>0;const label=/^\d+$/.test(r)?`第${r}弾`:r;
+    const numSvg=`<text x="28" y="33" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">${r}</text>`;
+    return `<div class="badge-item${earned?" earned":""}"><div class="badge-circle">${badgeSVG(numSvg,g.obtained,g.total)}</div><p class="badge-name">${label}</p><p class="badge-frac">${g.obtained}/${g.total}</p></div>`;
+  }).join("");
+  document.getElementById("mypage-body").innerHTML=`${totalHtml}<div class="badge-section"><div class="badge-section-label">都道府県バッジ</div><div class="badge-grid">${prefBadges||'<p style="font-size:12px;color:var(--text3)">データがありません</p>'}</div></div><div class="badge-section"><div class="badge-section-label">弾数バッジ</div><div class="badge-grid">${roundBadges||'<p style="font-size:12px;color:var(--text3)">弾数データがありません</p>'}</div></div>`;
+}
+
+// ===== PROGRESS =====
+let currentTab="area", currentSort="sum";
+function setSort(mode,btn){
+  currentSort=mode;
+  document.querySelectorAll(".sort-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active"); renderTab(currentTab);
+}
+function memberBarsHtml(members){
+  const sorted=[...members].sort((a,b)=>b.cnt-a.cnt);
+  return sorted.map(({name,cnt,col,pillCls,groupTotal})=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:.5px solid var(--border);"><span class="mpill ${pillCls}" style="min-width:36px;text-align:center">${name}</span><div class="rank-bar-bg" style="flex:1;min-width:40px"><div class="rank-bar-fill" style="width:${groupTotal>0?Math.round(cnt/groupTotal*100):0}%;background:${col}"></div></div><span style="font-size:12px;font-weight:700;min-width:28px;text-align:right">${cnt}</span><span class="rank-sub">/ ${groupTotal}</span></div>`).join("");
+}
+function renderProgress(){
+  const total=mhData.length;
+  const wAll=mhData.filter(d=>d.w).length,mAll=mhData.filter(d=>d.m).length,kAll=mhData.filter(d=>d.k).length;
+  document.getElementById("prog-stats").innerHTML=`<div class="stat-chip">総カード数 <strong>${total} 枚</strong></div><div class="stat-chip">西川 <strong>${wAll} 枚</strong></div><div class="stat-chip">森角 <strong>${mAll} 枚</strong></div><div class="stat-chip">小林 <strong>${kAll} 枚</strong></div>`;
+  renderTab(currentTab);
+}
+function renderTab(tab){ if(tab==="area") renderArea(); else renderPref(); }
+function renderArea(){
+  const areaData=AREAS.map(area=>{const sub=mhData.filter(d=>d.area===area);const n=sub.length;const members=MEMBERS.map(mem=>({...mem,cnt:sub.filter(d=>d[mem.key]).length,groupTotal:n}));return{name:area,total:n,members,sum:members.reduce((s,m)=>s+m.cnt,0)};});
+  const sorted=currentSort==="name"?[...areaData]:[...areaData].sort((a,b)=>b.sum-a.sum);
+  document.getElementById("tab-area").innerHTML=sorted.map((a,i)=>`<div style="margin-bottom:20px;"><div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;padding-bottom:6px;border-bottom:.5px solid var(--border);"><span style="font-size:11px;color:var(--text3);min-width:20px">${i+1}</span><span style="font-size:15px;font-weight:700">${a.name}</span></div><div style="padding-left:30px">${memberBarsHtml(a.members)}</div></div>`).join("");
+}
+function renderPref(){
+  const prefMap={};
+  mhData.forEach(d=>{if(!d.pref) return;if(!prefMap[d.pref]) prefMap[d.pref]={pref:d.pref,area:d.area,total:0,w:0,m:0,k:0};prefMap[d.pref].total++;if(d.w) prefMap[d.pref].w++;if(d.m) prefMap[d.pref].m++;if(d.k) prefMap[d.pref].k++;});
+  const prefData=Object.values(prefMap).map(p=>{const members=MEMBERS.map(mem=>({...mem,cnt:p[mem.key],groupTotal:p.total}));return{...p,members,sum:members.reduce((s,m)=>s+m.cnt,0)};});
+  const sorted=currentSort==="name"?[...prefData].sort((a,b)=>{const ac=PREF_CODE[normalizePrefName(a.pref)]||99,bc=PREF_CODE[normalizePrefName(b.pref)]||99;return ac-bc;}):[...prefData].sort((a,b)=>b.sum-a.sum);
+  document.getElementById("tab-pref").innerHTML=sorted.map((p,i)=>`<div style="margin-bottom:20px;"><div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;padding-bottom:6px;border-bottom:.5px solid var(--border);"><span style="font-size:11px;color:var(--text3);min-width:20px">${i+1}</span><span style="font-size:15px;font-weight:700">${p.pref}</span><span style="font-size:11px;color:var(--text3)">${p.area}</span></div><div style="padding-left:30px">${memberBarsHtml(p.members)}</div></div>`).join("");
+}
+function switchTab(tab,btn){
+  currentTab=tab;
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  ["area","pref"].forEach(t=>{ document.getElementById(`tab-${t}`).style.display=t===tab?"block":"none"; });
+  renderTab(tab);
+}
+
+// ===== 初期化 =====
+(function initRouting(){
+  const st=parseHash();
+  history.replaceState({page:st.page,no:st.no},"",location.hash||"#top");
+  if(st.page&&st.page!=="top"&&st.page!=="detail"){ applyPage(st.page); }
+})();
+loadActivity().then(()=>{
+  activitiesReady=true;
+  const st=parseHash();
+  if(st.page==="detail"&&st.no){ showDetail(st.no,false); }
+});
+loadTrip(); loadMH(); loadCycle();
+renderMypagePills();
