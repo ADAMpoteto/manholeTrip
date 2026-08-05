@@ -55,11 +55,12 @@ function isFutureDate(d){
 
 // ===== バッジ色 =====
 const BADGE_PALETTE=[
-  {cls:"b-jiro",name:"二郎"},{cls:"b-mh",name:"マンホールカード"},
-  {cls:"b-road",name:"ロード"},{cls:"b-meal",name:"食事"},
-  {cls:"b-wedding",name:"結婚式"},
-  {cls:"b-c6"},{cls:"b-c7"},{cls:"b-c8"},{cls:"b-c9"},{cls:"b-c10"},
-  {cls:"b-c11"},{cls:"b-c12"},{cls:"b-c13"},{cls:"b-c14"}
+  {cls:"b-mh",name:"マンホールカード"},{cls:"b-jiro",name:"二郎"},
+  {cls:"b-road",name:"ロード"},{cls:"b-autumn",name:"秋季例大祭"},
+  {cls:"b-meal",name:"食事"},{cls:"b-wedding",name:"結婚式"},
+  {cls:"b-fishing",name:"釣り"},{cls:"b-marathon",name:"マラソン"},
+  {cls:"b-travel",name:"旅行"},
+  {cls:"b-o1"},{cls:"b-o2"},{cls:"b-o3"},{cls:"b-o4"}
 ];
 let categoryClassMap={};
 function hslColorForIndex(i){
