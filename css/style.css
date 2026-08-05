@@ -50,21 +50,20 @@ nav.scrolled{box-shadow:0 2px 14px rgba(0,0,0,.06);}
 
 /* BADGES */
 .badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;white-space:nowrap;flex-shrink:0;min-width:90px;text-align:center;display:inline-block;}
-.b-jiro   {background:#fdeee8;color:#b03a1a;}
-.b-mh     {background:#e8f0fd;color:#1a4db0;}
-.b-road   {background:#e8fde8;color:#1a7a1a;}
-.b-meal   {background:#fdf5e8;color:#9a6810;}
-.b-wedding{background:#fde8f5;color:#8a1a68;}
-.b-c6     {background:#e8fbfd;color:#0a7d96;}
-.b-c7     {background:#f0e8fd;color:#5a1ab0;}
-.b-c8     {background:#fdf8e8;color:#8a8010;}
-.b-c9     {background:#e8edfd;color:#2a3a9a;}
-.b-c10    {background:#fde8ec;color:#b01a4a;}
-.b-c11    {background:#eafde8;color:#3a9a1a;}
-.b-c12    {background:#fdebe0;color:#cc5500;}
-.b-c13    {background:#e8fdf3;color:#0a9a5a;}
-.b-c14    {background:#f5e8fd;color:#7a1a9a;}
-.b-other  {background:var(--bg3);color:var(--text2);}
+.b-mh      {background:#fdeee8;color:#b03a1a;} /* マンホールカード: オレンジ */
+.b-jiro    {background:#fdf8e8;color:#8a8010;} /* 二郎: 黄色 */
+.b-road    {background:#e8fde8;color:#1a7a1a;} /* ロード: 緑 */
+.b-autumn  {background:#fde8f5;color:#8a1a68;} /* 秋季例大祭: ピンク */
+.b-meal    {background:#ececec;color:#333333;} /* 食事: 黒（グレー） */
+.b-wedding {background:#f0e8fd;color:#5a1ab0;} /* 結婚式: 紫 */
+.b-fishing {background:#e8fbfd;color:#0a7d96;} /* 釣り: 水色 */
+.b-marathon{background:#fde8e8;color:#b01a1a;} /* マラソン: 赤 */
+.b-travel  {background:#e8edfd;color:#2a3a9a;} /* 旅行: 紺（ネイビー） */
+.b-o1      {background:#e8fdf3;color:#0a9a5a;} /* 予備: ティール */
+.b-o2      {background:#f5ece0;color:#8a5a1a;} /* 予備: 茶 */
+.b-o3      {background:#eafde8;color:#3a9a1a;} /* 予備: 黄緑 */
+.b-o4      {background:#fdebe0;color:#cc5500;} /* 予備: 濃オレンジ */
+.b-other   {background:var(--bg3);color:var(--text2);}
 
 /* TOP HERO */
 .hero{padding:32px 0 28px;border-bottom:2px solid var(--text);margin-bottom:28px;}
