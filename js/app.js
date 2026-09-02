@@ -614,10 +614,10 @@ function buildCardListHtml(key){
         <span class="mh-card-status ${got?'st-got':'st-not'}">${got?'済':'未'}</span>
       </div>`;
     }).join("");
-    return `<div class="mh-pref-group">
-      <div class="mh-pref-group-title">${name}<span class="mh-pref-group-frac">${gotCount}/${total}</span></div>
+    return `<details class="mh-pref-group">
+      <summary class="mh-pref-group-title">${name}<span class="mh-pref-group-frac">${gotCount}/${total}</span></summary>
       <div class="mh-card-row-list">${rows}</div>
-    </div>`;
+    </details>`;
   }).join("");
 
   return `<div class="badge-section"><div class="badge-section-label">カード一覧</div>${filterBar}<div id="mh-card-list">${groupsHtml||'<p style="font-size:12px;color:var(--text3)">該当するカードがありません</p>'}</div></div>`;
