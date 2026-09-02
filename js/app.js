@@ -605,11 +605,12 @@ function buildCardListHtml(key){
       const got=!!d[key];
       const thumb=d.imgUrl?`<img src="${d.imgUrl}" alt="" loading="lazy">`:'<div class="mh-card-thumb-ph">🕳️</div>';
       const roundLbl=d.round?`<span class="mh-card-round">${fmtRoundLabel(d.round)}</span>`:"";
+      const codeLbl=d.code?`<span class="mh-card-code">${d.code}</span>`:"";
       return `<div class="mh-card-row${got?' got':''}">
         <div class="mh-card-thumb">${thumb}</div>
         <div class="mh-card-info">
           <div class="mh-card-city">${d.city||d.pref}</div>
-          ${roundLbl}
+          <div class="mh-card-meta">${codeLbl}${roundLbl}</div>
         </div>
         <span class="mh-card-status ${got?'st-got':'st-not'}">${got?'済':'未'}</span>
       </div>`;
@@ -646,7 +647,7 @@ function renderMyPage(){
     const numSvg=`<text x="28" y="33" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">${r}</text>`;
     return `<div class="badge-item${earned?" earned":""}"><div class="badge-circle">${badgeSVG(numSvg,g.obtained,g.total)}</div><p class="badge-name">${label}</p><p class="badge-frac">${g.obtained}/${g.total}</p></div>`;
   }).join("");
-  document.getElementById("mypage-body").innerHTML=`${totalHtml}<div class="badge-section"><div class="badge-section-label">都道府県バッジ</div><div class="badge-grid">${prefBadges||'<p style="font-size:12px;color:var(--text3)">データがありません</p>'}</div></div><div class="badge-section"><div class="badge-section-label">弾数バッジ</div><div class="badge-grid">${roundBadges||'<p style="font-size:12px;color:var(--text3)">弾数データがありません</p>'}</div></div>${buildCardListHtml(key)}`;
+  document.getElementById("mypage-body").innerHTML=`${buildCardListHtml(key)}${totalHtml}<div class="badge-section"><div class="badge-section-label">都道府県バッジ</div><div class="badge-grid">${prefBadges||'<p style="font-size:12px;color:var(--text3)">データがありません</p>'}</div></div><div class="badge-section"><div class="badge-section-label">弾数バッジ</div><div class="badge-grid">${roundBadges||'<p style="font-size:12px;color:var(--text3)">弾数データがありません</p>'}</div></div>`;
 }
 
 // ===== PROGRESS =====
