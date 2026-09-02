@@ -310,18 +310,24 @@ tbody tr:hover td{background:var(--bg2);}
 .mh-pref-group-title::before{content:"";width:7px;height:7px;border-right:1.5px solid var(--text2);border-bottom:1.5px solid var(--text2);transform:rotate(-45deg);transition:transform .15s;flex-shrink:0;margin-left:2px;}
 .mh-pref-group[open] > .mh-pref-group-title::before{transform:rotate(45deg);}
 .mh-pref-group-frac{font-size:11px;color:var(--text3);font-weight:400;font-variant-numeric:tabular-nums;}
-.mh-card-row-list{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
-.mh-card-row{display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--r);background:var(--bg2);opacity:.55;transition:opacity .12s;}
+.mh-card-row-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+.mh-card-row{display:flex;align-items:center;gap:8px;padding:8px;border-radius:var(--r);background:var(--bg2);opacity:.55;transition:opacity .12s;min-width:0;}
 .mh-card-row.got{opacity:1;}
-.mh-card-thumb{width:52px;height:74px;border-radius:6px;overflow:hidden;flex-shrink:0;background:var(--bg3);display:flex;align-items:center;justify-content:center;}
+.mh-card-thumb{width:44px;height:62px;border-radius:6px;overflow:hidden;flex-shrink:0;background:var(--bg3);display:flex;align-items:center;justify-content:center;}
 .mh-card-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
-.mh-card-thumb-ph{font-size:18px;}
+.mh-card-thumb-ph{font-size:16px;}
 .mh-card-info{flex:1;min-width:0;}
-.mh-card-city{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mh-card-city{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mh-card-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:2px;}
+.mh-card-code{font-size:9px;color:var(--text2);font-weight:700;background:var(--bg3);padding:1px 5px;border-radius:4px;font-variant-numeric:tabular-nums;}
 .mh-card-round{font-size:10px;color:var(--text3);}
-.mh-card-status{font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;flex-shrink:0;}
+.mh-card-status{font-size:10px;font-weight:800;padding:2px 7px;border-radius:99px;flex-shrink:0;}
 .mh-card-status.st-got{background:#e8f3e8;color:#1a7a1a;}
 .mh-card-status.st-not{background:var(--bg3);color:var(--text3);}
+@media(max-width:420px){
+  .mh-card-city{font-size:11px;}
+  .mh-card-code{font-size:8px;}
+}
 
 /* ===== CYCLE (自転車旅) ===== */
 .cycle-hero{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;}
