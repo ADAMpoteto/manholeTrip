@@ -15,9 +15,10 @@
   </div>
   <div class="nav-links">
     <button class="nav-btn active" onclick="goto('top')">トップ</button>
-    <button class="nav-btn" onclick="goto('mypage')">マイページ</button>
     <button class="nav-btn" onclick="goto('activities')">実績</button>
+    <button class="nav-btn" onclick="goto('mypage')">マイページ</button>
     <button class="nav-btn" onclick="goto('progress')">進捗</button>
+    <button class="nav-btn" onclick="goto('michinoeki')">道の駅</button>
     <button class="nav-btn" onclick="goto('manhole')">旅程</button>
     <button class="nav-btn" onclick="goto('cycle')">自転車</button>
     <button class="nav-btn" onclick="goto('rules')">規程</button>
@@ -110,6 +111,14 @@
   <div class="trip-stats" id="trip-stats"></div>
   <div class="trip-day-tabs" id="trip-day-tabs"></div>
   <div id="trip-days"><div class="loading">読み込み中…</div></div>
+</div>
+</div>
+
+<!-- MICHINOEKI (道の駅切符) -->
+<div id="michinoeki" class="page">
+<div class="container">
+  <div class="page-header"><h1>道の駅切符</h1><p>部内で集めている道の駅記念切符の取得状況</p></div>
+  <div id="michinoeki-body"><div class="loading">読み込み中…</div></div>
 </div>
 </div>
 
