@@ -10,7 +10,7 @@ function applyPage(page){
   const el=document.getElementById(page);
   if(!el) return;
   el.classList.add("active");
-  const lbl={top:"トップ",mypage:"マイページ",activities:"実績",progress:"進捗",manhole:"旅程",cycle:"自転車",rules:"規程",detail:"実績"};
+  const lbl={top:"トップ",mypage:"マイページ",activities:"実績",progress:"進捗",manhole:"旅程",michinoeki:"道の駅",cycle:"自転車",rules:"規程",detail:"実績"};
   document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.textContent.trim()===lbl[page]));
   window.scrollTo(0,0);
   if(page==="manhole"){
@@ -531,6 +531,53 @@ function renderCycle(){
   document.getElementById("cycle-body").innerHTML=tbl+cards;
 }
 
+// ===== MICHINOEKI (道の駅切符) =====
+let michinoekiData=[];
+async function loadMichinoeki(){
+  let r;
+  try{ r=await fetchCSV(URL_MICHINOEKI); }
+  catch(e){ document.getElementById("michinoeki-body").innerHTML=`<div class="loading">道の駅データの読み込みに失敗しました</div>`; return; }
+  michinoekiData=r.data.filter(d=>d["道の駅名"]&&d["道の駅名"].trim()).map((d,i)=>({
+    no:i+1,pref:d["都道府県"]||"",city:d["市区町村"]||"",name:d["道の駅名"]||"",
+    got:!!(d["取得日"]&&d["取得日"].trim())
+  }));
+  renderMichinoeki();
+}
+function renderMichinoeki(){
+  const total=michinoekiData.length;
+  const gotCount=michinoekiData.filter(d=>d.got).length;
+  const stats=`<div class="trip-stats">
+    <div class="stat-chip">取得枚数 <strong>${gotCount} / ${total} 駅</strong></div>
+  </div>`;
+
+  const prefGroups={};
+  michinoekiData.forEach(d=>{
+    const name=normalizePrefName(d.pref)||"その他";
+    if(!prefGroups[name]) prefGroups[name]=[];
+    prefGroups[name].push(d);
+  });
+  const prefNames=Object.keys(prefGroups).sort((a,b)=>(PREF_CODE[a]||99)-(PREF_CODE[b]||99));
+
+  const groupsHtml=prefNames.map(name=>{
+    const all=prefGroups[name];
+    const t=all.length;
+    const g=all.filter(d=>d.got).length;
+    const rows=all.map(d=>`<div class="mne-row${d.got?' got':''}">
+        <div class="mne-info">
+          <div class="mne-name">${d.name}</div>
+          <div class="mne-city">${d.city||""}</div>
+        </div>
+        <span class="mh-card-status ${d.got?'st-got':'st-not'}">${d.got?'済':'未'}</span>
+      </div>`).join("");
+    return `<details class="mh-pref-group">
+      <summary class="mh-pref-group-title">${name}<span class="mh-pref-group-frac">${g}/${t}</span></summary>
+      <div class="mne-row-list">${rows}</div>
+    </details>`;
+  }).join("");
+
+  document.getElementById("michinoeki-body").innerHTML=`${stats}<div id="mne-list">${groupsHtml||'<p style="font-size:12px;color:var(--text3)">道の駅データがありません</p>'}</div>`;
+}
+
 // ===== MH DATA =====
 async function loadMH(){
   let r;
@@ -699,5 +746,5 @@ loadActivity().then(()=>{
   const st=parseHash();
   if(st.page==="detail"&&st.no){ showDetail(st.no,false); }
 });
-loadTrip(); loadMH(); loadCycle();
+loadTrip(); loadMH(); loadCycle(); loadMichinoeki();
 renderMypagePills();
