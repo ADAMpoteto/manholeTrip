@@ -1,5 +1,6 @@
 let activities=[], trips={}, mhData=[], cycleData=[], activitiesReady=false, mhReady=false;
 let currentMypageMember="w";
+let currentCardFilter="all"; // "all", "got", or "not"
 let currentParticipation="full"; // "full", "partial", or "all"
 let currentCatFilter="all";
 
@@ -574,6 +575,53 @@ function renderMypagePills(){
   bar.innerHTML=MEMBERS.map(mem=>`<button class="member-pill${mem.key===currentMypageMember?" active":""}" onclick="selectMypageMember('${mem.key}')">${mem.name}</button>`).join("");
 }
 function selectMypageMember(key){ currentMypageMember=key; renderMyPage(); }
+function setCardFilter(mode){ currentCardFilter=mode; renderMyPage(); }
+function fmtRoundLabel(r){ return /^\d+$/.test(r)?`第${r}弾`:r; }
+function buildCardListHtml(key){
+  const filterDefs=[{mode:"all",label:"すべて"},{mode:"got",label:"取得済み"},{mode:"not",label:"未取得"}];
+  const filterBar=`<div class="filter-bar">${filterDefs.map(f=>
+    `<button class="filter-btn${currentCardFilter===f.mode?" active":""}" onclick="setCardFilter('${f.mode}')">${f.label}</button>`
+  ).join("")}</div>`;
+
+  const prefGroups={};
+  mhData.forEach(d=>{
+    const name=normalizePrefName(d.pref)||"その他";
+    if(!prefGroups[name]) prefGroups[name]=[];
+    prefGroups[name].push(d);
+  });
+  const prefNames=Object.keys(prefGroups).sort((a,b)=>(PREF_CODE[a]||99)-(PREF_CODE[b]||99));
+
+  const groupsHtml=prefNames.map(name=>{
+    const all=prefGroups[name];
+    const total=all.length;
+    const gotCount=all.filter(d=>d[key]).length;
+    const list=all.filter(d=>{
+      if(currentCardFilter==="got") return d[key];
+      if(currentCardFilter==="not") return !d[key];
+      return true;
+    });
+    if(list.length===0) return "";
+    const rows=list.map(d=>{
+      const got=!!d[key];
+      const thumb=d.imgUrl?`<img src="${d.imgUrl}" alt="" loading="lazy">`:'<div class="mh-card-thumb-ph">🕳️</div>';
+      const roundLbl=d.round?`<span class="mh-card-round">${fmtRoundLabel(d.round)}</span>`:"";
+      return `<div class="mh-card-row${got?' got':''}">
+        <div class="mh-card-thumb">${thumb}</div>
+        <div class="mh-card-info">
+          <div class="mh-card-city">${d.city||d.pref}</div>
+          ${roundLbl}
+        </div>
+        <span class="mh-card-status ${got?'st-got':'st-not'}">${got?'済':'未'}</span>
+      </div>`;
+    }).join("");
+    return `<div class="mh-pref-group">
+      <div class="mh-pref-group-title">${name}<span class="mh-pref-group-frac">${gotCount}/${total}</span></div>
+      <div class="mh-card-row-list">${rows}</div>
+    </div>`;
+  }).join("");
+
+  return `<div class="badge-section"><div class="badge-section-label">カード一覧</div>${filterBar}<div id="mh-card-list">${groupsHtml||'<p style="font-size:12px;color:var(--text3)">該当するカードがありません</p>'}</div></div>`;
+}
 function renderMyPage(){
   renderMypagePills();
   if(!mhReady) return;
@@ -598,7 +646,7 @@ function renderMyPage(){
     const numSvg=`<text x="28" y="33" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">${r}</text>`;
     return `<div class="badge-item${earned?" earned":""}"><div class="badge-circle">${badgeSVG(numSvg,g.obtained,g.total)}</div><p class="badge-name">${label}</p><p class="badge-frac">${g.obtained}/${g.total}</p></div>`;
   }).join("");
-  document.getElementById("mypage-body").innerHTML=`${totalHtml}<div class="badge-section"><div class="badge-section-label">都道府県バッジ</div><div class="badge-grid">${prefBadges||'<p style="font-size:12px;color:var(--text3)">データがありません</p>'}</div></div><div class="badge-section"><div class="badge-section-label">弾数バッジ</div><div class="badge-grid">${roundBadges||'<p style="font-size:12px;color:var(--text3)">弾数データがありません</p>'}</div></div>`;
+  document.getElementById("mypage-body").innerHTML=`${totalHtml}<div class="badge-section"><div class="badge-section-label">都道府県バッジ</div><div class="badge-grid">${prefBadges||'<p style="font-size:12px;color:var(--text3)">データがありません</p>'}</div></div><div class="badge-section"><div class="badge-section-label">弾数バッジ</div><div class="badge-grid">${roundBadges||'<p style="font-size:12px;color:var(--text3)">弾数データがありません</p>'}</div></div>${buildCardListHtml(key)}`;
 }
 
 // ===== PROGRESS =====
