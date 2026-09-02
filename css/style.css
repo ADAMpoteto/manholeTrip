@@ -329,6 +329,17 @@ tbody tr:hover td{background:var(--bg2);}
   .mh-card-code{font-size:8px;}
 }
 
+/* MICHINOEKI (道の駅切符) */
+.mne-row-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+.mne-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r);background:var(--bg2);opacity:.55;transition:opacity .12s;min-width:0;}
+.mne-row.got{opacity:1;}
+.mne-info{flex:1;min-width:0;}
+.mne-name{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mne-city{font-size:10px;color:var(--text3);margin-top:1px;}
+@media(max-width:420px){
+  .mne-name{font-size:11px;}
+}
+
 /* ===== CYCLE (自転車旅) ===== */
 .cycle-hero{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;}
 .cycle-stat{flex:1;min-width:130px;background:var(--bg2);border-radius:var(--rl);padding:14px 16px;border-left:3px solid #1a7a1a;}
