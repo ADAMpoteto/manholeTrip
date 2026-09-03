@@ -547,7 +547,7 @@ function renderMichinoeki(){
   const total=michinoekiData.length;
   const gotCount=michinoekiData.filter(d=>d.got).length;
   const stats=`<div class="trip-stats">
-    <div class="stat-chip">取得枚数 <strong>${gotCount} / ${total} 駅</strong></div>
+    <div class="stat-chip">取得枚数 <strong>${gotCount}枚</strong></div>
   </div>`;
 
   const prefGroups={};
