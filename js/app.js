@@ -570,7 +570,7 @@ function renderMichinoeki(){
         <span class="mh-card-status ${d.got?'st-got':'st-not'}">${d.got?'済':'未'}</span>
       </div>`).join("");
     return `<details class="mh-pref-group">
-      <summary class="mh-pref-group-title">${name}<span class="mh-pref-group-frac">${g}/${t}</span></summary>
+      <summary class="mh-pref-group-title">${name}<span class="mh-pref-group-frac">${t}枚</span></summary>
       <div class="mne-row-list">${rows}</div>
     </details>`;
   }).join("");
@@ -698,7 +698,7 @@ function renderMyPage(){
 }
 
 // ===== PROGRESS =====
-let currentTab="area", currentSort="sum";
+let currentTab="area", currentSort="name";
 function setSort(mode,btn){
   currentSort=mode;
   document.querySelectorAll(".sort-btn").forEach(b=>b.classList.remove("active"));
@@ -709,22 +709,19 @@ function memberBarsHtml(members){
   return sorted.map(({name,cnt,col,pillCls,groupTotal})=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:.5px solid var(--border);"><span class="mpill ${pillCls}" style="min-width:36px;text-align:center">${name}</span><div class="rank-bar-bg" style="flex:1;min-width:40px"><div class="rank-bar-fill" style="width:${groupTotal>0?Math.round(cnt/groupTotal*100):0}%;background:${col}"></div></div><span style="font-size:12px;font-weight:700;min-width:28px;text-align:right">${cnt}</span><span class="rank-sub">/ ${groupTotal}</span></div>`).join("");
 }
 function renderProgress(){
-  const total=mhData.length;
-  const wAll=mhData.filter(d=>d.w).length,mAll=mhData.filter(d=>d.m).length,kAll=mhData.filter(d=>d.k).length;
-  document.getElementById("prog-stats").innerHTML=`<div class="stat-chip">総カード数 <strong>${total} 枚</strong></div><div class="stat-chip">西川 <strong>${wAll} 枚</strong></div><div class="stat-chip">森角 <strong>${mAll} 枚</strong></div><div class="stat-chip">小林 <strong>${kAll} 枚</strong></div>`;
   renderTab(currentTab);
 }
 function renderTab(tab){ if(tab==="area") renderArea(); else renderPref(); }
 function renderArea(){
   const areaData=AREAS.map(area=>{const sub=mhData.filter(d=>d.area===area);const n=sub.length;const members=MEMBERS.map(mem=>({...mem,cnt:sub.filter(d=>d[mem.key]).length,groupTotal:n}));return{name:area,total:n,members,sum:members.reduce((s,m)=>s+m.cnt,0)};});
-  const sorted=currentSort==="name"?[...areaData]:[...areaData].sort((a,b)=>b.sum-a.sum);
+  const sorted=currentSort==="name"?[...areaData]:currentSort==="asc"?[...areaData].sort((a,b)=>a.sum-b.sum):[...areaData].sort((a,b)=>b.sum-a.sum);
   document.getElementById("tab-area").innerHTML=sorted.map((a,i)=>`<div style="margin-bottom:20px;"><div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;padding-bottom:6px;border-bottom:.5px solid var(--border);"><span style="font-size:11px;color:var(--text3);min-width:20px">${i+1}</span><span style="font-size:15px;font-weight:700">${a.name}</span></div><div style="padding-left:30px">${memberBarsHtml(a.members)}</div></div>`).join("");
 }
 function renderPref(){
   const prefMap={};
   mhData.forEach(d=>{if(!d.pref) return;if(!prefMap[d.pref]) prefMap[d.pref]={pref:d.pref,area:d.area,total:0,w:0,m:0,k:0};prefMap[d.pref].total++;if(d.w) prefMap[d.pref].w++;if(d.m) prefMap[d.pref].m++;if(d.k) prefMap[d.pref].k++;});
   const prefData=Object.values(prefMap).map(p=>{const members=MEMBERS.map(mem=>({...mem,cnt:p[mem.key],groupTotal:p.total}));return{...p,members,sum:members.reduce((s,m)=>s+m.cnt,0)};});
-  const sorted=currentSort==="name"?[...prefData].sort((a,b)=>{const ac=PREF_CODE[normalizePrefName(a.pref)]||99,bc=PREF_CODE[normalizePrefName(b.pref)]||99;return ac-bc;}):[...prefData].sort((a,b)=>b.sum-a.sum);
+  const sorted=currentSort==="name"?[...prefData].sort((a,b)=>{const ac=PREF_CODE[normalizePrefName(a.pref)]||99,bc=PREF_CODE[normalizePrefName(b.pref)]||99;return ac-bc;}):currentSort==="asc"?[...prefData].sort((a,b)=>a.sum-b.sum):[...prefData].sort((a,b)=>b.sum-a.sum);
   document.getElementById("tab-pref").innerHTML=sorted.map((p,i)=>`<div style="margin-bottom:20px;"><div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;padding-bottom:6px;border-bottom:.5px solid var(--border);"><span style="font-size:11px;color:var(--text3);min-width:20px">${i+1}</span><span style="font-size:15px;font-weight:700">${p.pref}</span><span style="font-size:11px;color:var(--text3)">${p.area}</span></div><div style="padding-left:30px">${memberBarsHtml(p.members)}</div></div>`).join("");
 }
 function switchTab(tab,btn){
