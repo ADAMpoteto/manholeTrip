@@ -136,15 +136,15 @@
 <div id="progress" class="page">
 <div class="container">
   <div class="page-header"><h1>マンホールカード収集進捗</h1><p>エリア・都道府県ごとにメンバー3人の取得状況を比較</p></div>
-  <div id="prog-stats" class="trip-stats" style="margin-bottom:18px"></div>
   <div class="tab-bar">
     <button class="tab-btn active" onclick="switchTab('area',this)">エリア別</button>
     <button class="tab-btn" onclick="switchTab('pref',this)">都道府県別</button>
   </div>
   <div class="sort-bar">
     <span style="font-size:11px;color:var(--text3)">並び順</span>
-    <button class="sort-btn active" onclick="setSort('sum',this)">取得数が多い順</button>
-    <button class="sort-btn" onclick="setSort('name',this)">都道府県順</button>
+    <button class="sort-btn active" onclick="setSort('name',this)">都道府県順</button>
+    <button class="sort-btn" onclick="setSort('sum',this)">取得数が多い順</button>
+    <button class="sort-btn" onclick="setSort('asc',this)">取得数が少ない順</button>
   </div>
   <div id="tab-area"></div>
   <div id="tab-pref" style="display:none"></div>
