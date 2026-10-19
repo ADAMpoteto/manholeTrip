@@ -255,22 +255,48 @@ function filterAct(cat,btn){
   btn.classList.add("active");
   renderActTable();
 }
+let openYears=null; // 開いている年（初回は最新年だけ開く）
+function actYear(a){ const d=parseDate(a.date); return d?String(d.getFullYear()):"日付不明"; }
+function toggleYear(y){
+  if(openYears.has(y)) openYears.delete(y); else openYears.add(y);
+  renderActTable();
+}
 function renderActTable(){
   const pastActs=activities.filter(a=>!isFutureDate(a.date));
   let list=filterByParticipation(pastActs,currentParticipation);
   if(currentCatFilter!=="all") list=list.filter(a=>a.cat===currentCatFilter);
   const sorted=[...list].reverse();
 
-  document.getElementById("act-tbody").innerHTML=sorted.map(a=>`
+  // 年ごとにグループ化（新しい年が先）
+  const groups=[];
+  sorted.forEach(a=>{
+    const y=actYear(a);
+    let g=groups.find(x=>x.year===y);
+    if(!g){ g={year:y,items:[]}; groups.push(g); }
+    g.items.push(a);
+  });
+  if(openYears===null){
+    const latest=pastActs.map(actYear).filter(y=>y!=="日付不明").sort().pop();
+    openYears=new Set(latest?[latest]:[]);
+  }
+  const yearLabel=y=>y==="日付不明"?y:`${y}年`;
+
+  document.getElementById("act-tbody").innerHTML=groups.map(g=>{
+    const open=openYears.has(g.year);
+    const head=`<tr class="year-row${open?' open':''}" onclick="toggleYear('${g.year}')">
+      <td colspan="5"><span class="year-caret">›</span>${yearLabel(g.year)}<span class="year-count">${g.items.length}件</span></td></tr>`;
+    if(!open) return head;
+    return head+g.items.map(a=>`
     <tr>
       <td style="color:var(--text3);font-size:11px">${a.no}</td>
       <td style="font-size:11px;color:var(--text2);white-space:nowrap">${a.date}</td>
       <td class="badge-cell">${mkBadge(a.cat)}</td>
       <td class="title-cell">${a.title} ${mkParticipantPills(a)}</td>
       <td><button class="det-btn" onclick="showDetail(${a.no})">詳細</button></td>
-    </tr>`).join("")||"<tr><td colspan=\"5\" style=\"padding:20px;color:var(--text3);text-align:center\">該当なし</td></tr>";
+    </tr>`).join("");
+  }).join("")||"<tr><td colspan=\"5\" style=\"padding:20px;color:var(--text3);text-align:center\">該当なし</td></tr>";
 
-  document.getElementById("act-list").innerHTML=sorted.map(a=>{
+  const card=a=>{
     const subParts=[];
     if(a.distW) subParts.push(`西川：${a.distW}km`);
     if(a.distM) subParts.push(`森角：${a.distM}km`);
@@ -290,6 +316,11 @@ function renderActTable(){
       </div>
       <div class="act-card-arrow">›</div>
     </div>`;
+  };
+  document.getElementById("act-list").innerHTML=groups.map(g=>{
+    const open=openYears.has(g.year);
+    return `<div class="year-head${open?' open':''}" onclick="toggleYear('${g.year}')"><span class="year-caret">›</span>${yearLabel(g.year)}<span class="year-count">${g.items.length}件</span></div>`
+      +(open?g.items.map(card).join(""):"");
   }).join("")||"<div style=\"padding:20px;color:var(--text3);text-align:center\">該当なし</div>";
 }
 
