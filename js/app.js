@@ -66,7 +66,7 @@ const BADGE_PALETTE=[
 let categoryClassMap={};
 function hslColorForIndex(i){
   const hue=(i*137.508)%360;
-  return {bg:`hsl(${hue.toFixed(0)},70%,93%)`,fg:`hsl(${hue.toFixed(0)},55%,33%)`};
+  return {bg:`hsl(${hue.toFixed(0)},75%,94%)`,fg:`hsl(${hue.toFixed(0)},60%,34%)`};
 }
 function assignCategoryColors(cats){
   categoryClassMap={};
@@ -147,9 +147,9 @@ async function loadActivity(){
 // ===== KPIセクション描画 =====
 function buildKPIHtml(acts,mode){
   const MKEYS=[
-    {name:"西川",distKey:"distW",joinKey:"joinedW",mhKey:"w"},
-    {name:"森角",distKey:"distM",joinKey:"joinedM",mhKey:"m"},
-    {name:"小林",distKey:"distK",joinKey:"joinedK",mhKey:"k"}
+    {name:"西川",distKey:"distW",joinKey:"joinedW",mhKey:"w",col:"var(--c-w)"},
+    {name:"森角",distKey:"distM",joinKey:"joinedM",mhKey:"m",col:"var(--c-m)"},
+    {name:"小林",distKey:"distK",joinKey:"joinedK",mhKey:"k",col:"var(--c-k)"}
   ];
   const actCount=acts.length;
   const actCard=`<div class="kpi-act-card"><div class="kpi-label">活動回数</div><div class="kpi-val">${actCount}<span class="kpi-unit"> 回</span></div></div>`;
@@ -166,7 +166,7 @@ function buildKPIHtml(acts,mode){
       <div class="kpi-member-val">${joinCount}<span class="unit"> / ${actCount}回</span></div>
       <hr class="kpi-member-divider">`;
 
-    return `<div class="kpi-member-card">
+    return `<div class="kpi-member-card" style="--mc:${mem.col}">
       <div class="kpi-member-name">${mem.name}</div>
       <div class="kpi-member-section-label">取得</div>
       <div class="kpi-member-val">${mhCount}<span class="unit">枚</span></div>
@@ -415,7 +415,7 @@ function renderTrip(name, opts){
     <div class="stat-chip">総距離 <strong>${dist.toFixed(1)} km</strong></div>
     <div class="stat-chip">訪問予定 <strong>${spots} 件</strong></div>
     <div class="stat-chip">収集済 <strong>${done} 枚</strong></div>
-    ${data.walica?`<a class="stat-chip" href="${data.walica}" target="_blank" style="color:#1a4db0;font-weight:700;text-decoration:none"> Walica URL</a>`:''}`;
+    ${data.walica?`<a class="stat-chip" href="${data.walica}" target="_blank" > Walica URL</a>`:''}`;
 
   document.getElementById("trip-day-tabs").innerHTML=data.days.map((day,idx)=>{
     let ds=0,dd=0;
@@ -441,7 +441,7 @@ function renderTrip(name, opts){
             <td style="font-size:12px;color:var(--text2);white-space:nowrap">${i.arrival}</td>
             <td style="font-size:12px;color:var(--text2)">${i.distance}</td>
             <td style="font-size:12px">${i.city}</td>
-            <td style="font-size:12px;font-weight:600">${i.url?`<a href="${i.url}" target="_blank" style="color:#1a4db0;font-weight:600">${i.title}</a>`:i.title}</td>
+            <td style="font-size:12px;font-weight:600">${i.url?`<a href="${i.url}" target="_blank" style="color:var(--link);font-weight:700">${i.title}</a>`:i.title}</td>
             <td style="font-size:11px;color:var(--text2);white-space:nowrap">${i.time}</td>
             <td style="font-size:11px"><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(i.address)}" target="_blank" class="addr-link">${i.address}</a></td>
             <td>${i.mhUrl?`<a href="${i.mhUrl}" target="_blank" class="ext-link">↗</a>`:''}</td>
@@ -630,7 +630,7 @@ async function loadMH(){
 
 const AREAS=["北海道","東北","関東","中部","北陸","近畿","中国","四国","九州"];
 const PREF_CODE={"北海道":1,"青森":2,"岩手":3,"宮城":4,"秋田":5,"山形":6,"福島":7,"茨城":8,"栃木":9,"群馬":10,"埼玉":11,"千葉":12,"東京":13,"神奈川":14,"新潟":15,"富山":16,"石川":17,"福井":18,"山梨":19,"長野":20,"岐阜":21,"静岡":22,"愛知":23,"三重":24,"滋賀":25,"京都":26,"大阪":27,"兵庫":28,"奈良":29,"和歌山":30,"鳥取":31,"島根":32,"岡山":33,"広島":34,"山口":35,"徳島":36,"香川":37,"愛媛":38,"高知":39,"福岡":40,"佐賀":41,"長崎":42,"熊本":43,"大分":44,"宮崎":45,"鹿児島":46,"沖縄":47};
-const MEMBERS=[{name:"西川",key:"w",col:"#1a4db0",pillCls:"mpill-w"},{name:"森角",key:"m",col:"#1a7a1a",pillCls:"mpill-m"},{name:"小林",key:"k",col:"#b03a1a",pillCls:"mpill-k"}];
+const MEMBERS=[{name:"西川",key:"w",col:"var(--c-w)",hex:"#2f6fe4",pillCls:"mpill-w"},{name:"森角",key:"m",col:"var(--c-m)",hex:"#14a463",pillCls:"mpill-m"},{name:"小林",key:"k",col:"var(--c-k)",hex:"#e5493a",pillCls:"mpill-k"}];
 
 // ===== MYPAGE =====
 function normalizePrefName(name){ return (name||"").trim().replace(/(都|府|県)$/,""); }
@@ -639,23 +639,70 @@ function starPoints(cx,cy,rOuter,rInner){
   for(let i=0;i<10;i++){const r=i%2===0?rOuter:rInner;const a=(Math.PI/5)*i-Math.PI/2;pts.push(`${(cx+r*Math.cos(a)).toFixed(1)},${(cy+r*Math.sin(a)).toFixed(1)}`);}
   return pts.join(" ");
 }
-function badgeSVG(innerSVG,obtained,total){
+// バッジの状態: none(未取得) / progress(途中) / complete(全取得)
+function badgeState(obtained,total){
+  if(total>0&&obtained>=total) return "complete";
+  return obtained>0?"progress":"none";
+}
+let _badgeUid=0;
+// innerSVG内の塗りは currentColor を使うこと（状態に応じて色が変わる）
+function badgeSVG(innerSVG,obtained,total,mc){
+  const id="bg"+(++_badgeUid);
   const r=25,c=2*Math.PI*r;
   const pct=total>0?Math.max(0,Math.min(1,obtained/total)):0;
-  const dash=(pct*c).toFixed(1);
-  const earned=obtained>0;
-  const color=earned?"var(--text)":"var(--text3)";
-  return `<svg viewBox="0 0 56 56" style="color:${color}"><circle cx="28" cy="28" r="${r}" fill="var(--bg2)"></circle><circle cx="28" cy="28" r="${r}" fill="none" stroke="var(--border)" stroke-width="2.5"></circle><circle cx="28" cy="28" r="${r}" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="${dash} ${c.toFixed(1)}" transform="rotate(-90 28 28)"></circle>${innerSVG}</svg>`;
+  const st=badgeState(obtained,total);
+  if(st==="complete"){
+    return `<svg viewBox="0 0 56 56" style="color:#4a3200">
+      <defs>
+        <linearGradient id="${id}f" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6cf"/><stop offset=".45" stop-color="#f7c948"/><stop offset="1" stop-color="#c58c0a"/></linearGradient>
+        <linearGradient id="${id}r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff1b0"/><stop offset="1" stop-color="#b37c00"/></linearGradient>
+      </defs>
+      <circle cx="28" cy="28" r="27" fill="url(#${id}r)"/>
+      <circle cx="28" cy="28" r="23.5" fill="url(#${id}f)" stroke="#fff3c4" stroke-opacity=".7" stroke-width="1"/>
+      <circle cx="28" cy="28" r="19.5" fill="none" stroke="#8a5f00" stroke-opacity=".35" stroke-width=".8" stroke-dasharray="1.5 2"/>
+      ${innerSVG}
+    </svg>`;
+  }
+  const ring=st==="none"?"var(--text3)":(mc||"var(--accent)");
+  const fg=st==="none"?"var(--text3)":"var(--text)";
+  return `<svg viewBox="0 0 56 56" style="color:${fg}">
+    <circle cx="28" cy="28" r="${r}" fill="var(--bg3)"/>
+    <circle cx="28" cy="28" r="${r}" fill="none" stroke="var(--bg4)" stroke-width="3"/>
+    <circle cx="28" cy="28" r="${r}" fill="none" stroke="${ring}" stroke-width="3" stroke-linecap="round" stroke-dasharray="${(pct*c).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 28 28)"/>
+    ${innerSVG}
+  </svg>`;
+}
+const CROWN_SVG=`<svg class="badge-crown" viewBox="0 0 24 16" aria-hidden="true"><defs><linearGradient id="crownG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset="1" stop-color="#e0a614"/></linearGradient></defs><path d="M2 14 L1 4 L7 8.5 L12 1.5 L17 8.5 L23 4 L22 14 Z" fill="url(#crownG)" stroke="#7a5200" stroke-width="1" stroke-linejoin="round"/><circle cx="12" cy="10" r="1.6" fill="#ff5f2e"/></svg>`;
+const CROWN_MINI=`<svg viewBox="0 0 24 16" aria-hidden="true"><path d="M2 14 L1 4 L7 8.5 L12 1.5 L17 8.5 L23 4 L22 14 Z" fill="currentColor"/></svg>`;
+
+function badgeItemHtml(innerSVG,label,g,mc,opts){
+  opts=opts||{};
+  const st=badgeState(g.obtained,g.total);
+  const tag=opts.tag||"div";
+  const attrs=opts.onclick?` type="button" onclick="${opts.onclick}" aria-label="${label} ${g.obtained}/${g.total}${st==='complete'?' コンプリート':''}"`:"";
+  const foot=st==="complete"
+    ?`<span class="comp-tag">COMPLETE</span>`
+    :`<p class="badge-frac">${g.obtained}/${g.total}</p>`;
+  return `<${tag} class="badge-item ${st}"${attrs}><div class="badge-circle">${st==="complete"?CROWN_SVG:""}${badgeSVG(innerSVG,g.obtained,g.total,mc)}</div><p class="badge-name">${label}</p>${foot}</${tag}>`;
 }
 function renderMypagePills(){
   const bar=document.getElementById("mypage-pills");
   if(!bar) return;
-  bar.innerHTML=MEMBERS.map(mem=>`<button class="member-pill${mem.key===currentMypageMember?" active":""}" onclick="selectMypageMember('${mem.key}')">${mem.name}</button>`).join("");
+  bar.innerHTML=MEMBERS.map(mem=>`<button class="member-pill${mem.key===currentMypageMember?" active":""}" style="--mc:${mem.col}" onclick="selectMypageMember('${mem.key}')">${mem.name}</button>`).join("");
 }
 function selectMypageMember(key){ currentMypageMember=key; renderMyPage(); }
 function setCardFilter(mode){ currentCardFilter=mode; renderMyPage(); }
 function fmtRoundLabel(r){ return /^\d+$/.test(r)?`第${r}弾`:r; }
-function buildCardListHtml(key){
+// 都道府県バッジをタップ → カード一覧の該当県を開いてスクロール
+function jumpToPref(name){
+  if(currentCardFilter!=="all"){ currentCardFilter="all"; renderMyPage(); }
+  const el=document.querySelector(`.mh-pref-group[data-pref="${CSS.escape(name)}"]`);
+  if(!el) return;
+  el.open=true;
+  el.scrollIntoView({behavior:prefersReduced()?"auto":"smooth",block:"start"});
+  el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+}
+function buildCardListHtml(key,mc){
   const filterDefs=[{mode:"all",label:"すべて"},{mode:"got",label:"取得済み"},{mode:"not",label:"未取得"}];
   const filterBar=`<div class="filter-bar">${filterDefs.map(f=>
     `<button class="filter-btn${currentCardFilter===f.mode?" active":""}" onclick="setCardFilter('${f.mode}')">${f.label}</button>`
@@ -673,6 +720,7 @@ function buildCardListHtml(key){
     const all=prefGroups[name];
     const total=all.length;
     const gotCount=all.filter(d=>d[key]).length;
+    const comp=total>0&&gotCount>=total;
     const list=all.filter(d=>{
       if(currentCardFilter==="got") return d[key];
       if(currentCardFilter==="not") return !d[key];
@@ -693,39 +741,79 @@ function buildCardListHtml(key){
         <span class="mh-card-status ${got?'st-got':'st-not'}">${got?'済':'未'}</span>
       </div>`;
     }).join("");
-    return `<details class="mh-pref-group">
-      <summary class="mh-pref-group-title">${name}<span class="mh-pref-group-frac">${gotCount}/${total}</span></summary>
+    const pct=total>0?Math.round(gotCount/total*100):0;
+    return `<details class="mh-pref-group${comp?' complete':''}" data-pref="${name}">
+      <summary class="mh-pref-group-title">${name}${comp?'<span class="comp-tag">COMPLETE</span>':''}<span class="mh-pref-mini"><i style="width:${pct}%"></i></span><span class="mh-pref-group-frac">${gotCount}/${total}</span></summary>
       <div class="mh-card-row-list">${rows}</div>
     </details>`;
   }).join("");
 
-  return `<div class="badge-section"><div class="badge-section-label">カード一覧</div>${filterBar}<div id="mh-card-list">${groupsHtml||'<p style="font-size:12px;color:var(--text3)">該当するカードがありません</p>'}</div></div>`;
+  return `<div class="badge-section"><div class="badge-section-head"><div class="sec-label">カード一覧</div></div>${filterBar}<div id="mh-card-list">${groupsHtml||'<p style="font-size:12px;color:var(--text3)">該当するカードがありません</p>'}</div></div>`;
+}
+function compCounterHtml(done,total){
+  return `<span class="comp-counter">${CROWN_MINI}COMPLETE ${done}<span style="opacity:.6"> / ${total}</span></span>`;
 }
 function renderMyPage(){
   renderMypagePills();
   if(!mhReady) return;
+  _badgeUid=0;
   const key=currentMypageMember;
+  const mem=MEMBERS.find(m=>m.key===key)||MEMBERS[0];
+  const mc=mem.col;
   const totalObtained=mhData.filter(d=>d[key]).length;
   const totalAll=mhData.length;
-  const starSvg=`<polygon points="${starPoints(28,28,12,5)}" fill="currentColor"></polygon>`;
-  const totalHtml=`<div class="mypage-total"><div class="badge-circle">${badgeSVG(starSvg,totalObtained,totalAll)}</div><div><div class="mypage-total-label">総取得枚数バッジ</div><div class="mypage-total-val">${totalObtained}<span class="unit"> / ${totalAll}枚</span></div></div></div>`;
+
+  // 都道府県
   const prefGroups={};
   mhData.forEach(d=>{if(!d.pref) return;const name=normalizePrefName(d.pref);if(!prefGroups[name]) prefGroups[name]={total:0,obtained:0};prefGroups[name].total++;if(d[key]) prefGroups[name].obtained++;});
   const prefNames=Object.keys(prefGroups).sort((a,b)=>(PREF_CODE[a]||99)-(PREF_CODE[b]||99));
+  const prefComp=prefNames.filter(n=>badgeState(prefGroups[n].obtained,prefGroups[n].total)==="complete").length;
   const prefBadges=prefNames.map(name=>{
-    const g=prefGroups[name];const earned=g.obtained>0;const shape=PREF_SHAPES[name];
-    const shapeSvg=shape?`<svg x="14" y="14" width="28" height="28" viewBox="${shape.vb}"><polygon points="${shape.p}" fill="currentColor"></polygon></svg>`:"";
-    return `<div class="badge-item${earned?" earned":""}"><div class="badge-circle">${badgeSVG(shapeSvg,g.obtained,g.total)}</div><p class="badge-name">${name}</p><p class="badge-frac">${g.obtained}/${g.total}</p></div>`;
+    const g=prefGroups[name];const shape=PREF_SHAPES[name];
+    const shapeSvg=shape?`<svg x="15" y="15" width="26" height="26" viewBox="${shape.vb}" preserveAspectRatio="xMidYMid meet"><polygon points="${shape.p}" fill="currentColor"></polygon></svg>`:`<text x="28" y="32" text-anchor="middle" font-size="11" font-weight="800" fill="currentColor">${name.slice(0,2)}</text>`;
+    return badgeItemHtml(shapeSvg,name,g,mc,{tag:"button",onclick:`jumpToPref('${name}')`});
   }).join("");
+
+  // 弾数
   const roundGroups={};
   mhData.forEach(d=>{const r=d.round;if(!r) return;if(!roundGroups[r]) roundGroups[r]={total:0,obtained:0};roundGroups[r].total++;if(d[key]) roundGroups[r].obtained++;});
   const roundKeys=Object.keys(roundGroups).sort((a,b)=>{const an=parseFloat(a),bn=parseFloat(b);if(!isNaN(an)&&!isNaN(bn)) return an-bn;return a.localeCompare(b,"ja");});
+  const roundComp=roundKeys.filter(r=>badgeState(roundGroups[r].obtained,roundGroups[r].total)==="complete").length;
   const roundBadges=roundKeys.map(r=>{
-    const g=roundGroups[r];const earned=g.obtained>0;const label=/^\d+$/.test(r)?`第${r}弾`:r;
-    const numSvg=`<text x="28" y="33" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">${r}</text>`;
-    return `<div class="badge-item${earned?" earned":""}"><div class="badge-circle">${badgeSVG(numSvg,g.obtained,g.total)}</div><p class="badge-name">${label}</p><p class="badge-frac">${g.obtained}/${g.total}</p></div>`;
+    const g=roundGroups[r];
+    const fs=r.length>=3?12:r.length===2?16:18;
+    const numSvg=`<text x="28" y="${28+fs*0.36}" text-anchor="middle" font-family="Outfit,sans-serif" font-size="${fs}" font-weight="800" fill="currentColor">${r}</text>`;
+    return badgeItemHtml(numSvg,fmtRoundLabel(r),g,mc);
   }).join("");
-  document.getElementById("mypage-body").innerHTML=`${totalHtml}${buildCardListHtml(key)}<div class="badge-section"><div class="badge-section-label">都道府県バッジ</div><div class="badge-grid">${prefBadges||'<p style="font-size:12px;color:var(--text3)">データがありません</p>'}</div></div><div class="badge-section"><div class="badge-section-label">弾数バッジ</div><div class="badge-grid">${roundBadges||'<p style="font-size:12px;color:var(--text3)">弾数データがありません</p>'}</div></div>`;
+
+  // ヒーロー（総取得リング）
+  const R=52,C=2*Math.PI*R,pct=totalAll>0?totalObtained/totalAll:0;
+  const allComp=totalAll>0&&totalObtained>=totalAll;
+  const ringCol=allComp?"var(--gold)":mc;
+  const heroHtml=`<div class="mp-hero" style="--mc:${mc}">
+    <div class="mp-ring">
+      <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="${R}" fill="none" stroke="var(--bg3)" stroke-width="9"/>
+      <circle cx="60" cy="60" r="${R}" fill="none" stroke="${ringCol}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${(pct*C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 60 60)" style="filter:drop-shadow(0 0 6px ${mem.hex}88)"/></svg>
+      <div class="mp-ring-center"><span class="mp-ring-num">${totalObtained}</span><span class="mp-ring-pct">${(pct*100).toFixed(1)}%</span></div>
+    </div>
+    <div>
+      <div class="mp-name">${mem.name}<small>COLLECTOR</small></div>
+      <div class="mp-sub">マンホールカード ${totalObtained} / ${totalAll} 枚 取得</div>
+      <div class="mp-stats">
+        <div class="mp-stat"><div class="mp-stat-label">取得枚数</div><div class="mp-stat-val">${totalObtained}<span class="unit">/${totalAll}</span></div></div>
+        <div class="mp-stat gold"><div class="mp-stat-label">👑 県コンプ</div><div class="mp-stat-val">${prefComp}<span class="unit">/${prefNames.length}</span></div></div>
+        <div class="mp-stat gold"><div class="mp-stat-label">👑 弾コンプ</div><div class="mp-stat-val">${roundComp}<span class="unit">/${roundKeys.length}</span></div></div>
+      </div>
+    </div>
+  </div>`;
+
+  const empty=t=>`<p style="font-size:12px;color:var(--text3)">${t}</p>`;
+  const body=document.getElementById("mypage-body");
+  body.style.setProperty("--mc",mc);
+  body.innerHTML=`${heroHtml}
+    <div class="badge-section"><div class="badge-section-head"><div class="sec-label">都道府県バッジ</div>${compCounterHtml(prefComp,prefNames.length)}</div><div class="badge-grid">${prefBadges||empty("データがありません")}</div></div>
+    <div class="badge-section"><div class="badge-section-head"><div class="sec-label">弾数バッジ</div>${compCounterHtml(roundComp,roundKeys.length)}</div><div class="badge-grid">${roundBadges||empty("弾数データがありません")}</div></div>
+    ${buildCardListHtml(key,mc)}`;
 }
 
 // ===== PROGRESS =====
@@ -737,7 +825,14 @@ function setSort(mode,btn){
 }
 function memberBarsHtml(members){
   const sorted=[...members].sort((a,b)=>b.cnt-a.cnt);
-  return sorted.map(({name,cnt,col,pillCls,groupTotal})=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:.5px solid var(--border);"><span class="mpill ${pillCls}" style="min-width:36px;text-align:center">${name}</span><div class="rank-bar-bg" style="flex:1;min-width:40px"><div class="rank-bar-fill" style="width:${groupTotal>0?Math.round(cnt/groupTotal*100):0}%;background:${col}"></div></div><span style="font-size:12px;font-weight:700;min-width:28px;text-align:right">${cnt}</span><span class="rank-sub">/ ${groupTotal}</span></div>`).join("");
+  return sorted.map(({name,cnt,col,pillCls,groupTotal})=>{
+    const full=groupTotal>0&&cnt>=groupTotal;
+    const w=groupTotal>0?Math.round(cnt/groupTotal*100):0;
+    return `<div class="prog-row"><span class="mpill ${pillCls}">${name}</span><div class="rank-bar-bg"><div class="rank-bar-fill" style="width:${w}%;background:${full?'linear-gradient(90deg,#fff1b8,var(--gold))':col}"></div></div><span class="prog-cnt">${cnt}</span><span class="rank-sub">/ ${groupTotal}</span>${full?'<span class="prog-full">COMP</span>':''}</div>`;
+  }).join("");
+}
+function progBlockHtml(i,name,sub,total,members){
+  return `<div class="prog-block"><div class="prog-head"><span class="prog-rank">${String(i+1).padStart(2,"0")}</span><span class="prog-name">${name}</span>${sub?`<span class="prog-area">${sub}</span>`:''}<span class="prog-total">全${total}枚</span></div>${memberBarsHtml(members)}</div>`;
 }
 function renderProgress(){
   renderTab(currentTab);
@@ -746,14 +841,14 @@ function renderTab(tab){ if(tab==="area") renderArea(); else renderPref(); }
 function renderArea(){
   const areaData=AREAS.map(area=>{const sub=mhData.filter(d=>d.area===area);const n=sub.length;const members=MEMBERS.map(mem=>({...mem,cnt:sub.filter(d=>d[mem.key]).length,groupTotal:n}));return{name:area,total:n,members,sum:members.reduce((s,m)=>s+m.cnt,0)};});
   const sorted=currentSort==="name"?[...areaData]:currentSort==="asc"?[...areaData].sort((a,b)=>a.sum-b.sum):[...areaData].sort((a,b)=>b.sum-a.sum);
-  document.getElementById("tab-area").innerHTML=sorted.map((a,i)=>`<div style="margin-bottom:20px;"><div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;padding-bottom:6px;border-bottom:.5px solid var(--border);"><span style="font-size:11px;color:var(--text3);min-width:20px">${i+1}</span><span style="font-size:15px;font-weight:700">${a.name}</span></div><div style="padding-left:30px">${memberBarsHtml(a.members)}</div></div>`).join("");
+  document.getElementById("tab-area").innerHTML=sorted.map((a,i)=>progBlockHtml(i,a.name,"",a.total,a.members)).join("");
 }
 function renderPref(){
   const prefMap={};
   mhData.forEach(d=>{if(!d.pref) return;if(!prefMap[d.pref]) prefMap[d.pref]={pref:d.pref,area:d.area,total:0,w:0,m:0,k:0};prefMap[d.pref].total++;if(d.w) prefMap[d.pref].w++;if(d.m) prefMap[d.pref].m++;if(d.k) prefMap[d.pref].k++;});
   const prefData=Object.values(prefMap).map(p=>{const members=MEMBERS.map(mem=>({...mem,cnt:p[mem.key],groupTotal:p.total}));return{...p,members,sum:members.reduce((s,m)=>s+m.cnt,0)};});
   const sorted=currentSort==="name"?[...prefData].sort((a,b)=>{const ac=PREF_CODE[normalizePrefName(a.pref)]||99,bc=PREF_CODE[normalizePrefName(b.pref)]||99;return ac-bc;}):currentSort==="asc"?[...prefData].sort((a,b)=>a.sum-b.sum):[...prefData].sort((a,b)=>b.sum-a.sum);
-  document.getElementById("tab-pref").innerHTML=sorted.map((p,i)=>`<div style="margin-bottom:20px;"><div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;padding-bottom:6px;border-bottom:.5px solid var(--border);"><span style="font-size:11px;color:var(--text3);min-width:20px">${i+1}</span><span style="font-size:15px;font-weight:700">${p.pref}</span><span style="font-size:11px;color:var(--text3)">${p.area}</span></div><div style="padding-left:30px">${memberBarsHtml(p.members)}</div></div>`).join("");
+  document.getElementById("tab-pref").innerHTML=sorted.map((p,i)=>progBlockHtml(i,p.pref,p.area,p.total,p.members)).join("");
 }
 function switchTab(tab,btn){
   currentTab=tab;
