@@ -379,7 +379,7 @@ async function loadTrip(){
     const name=`${o["旅行日"]} ${o["旅行タイトル"]}`;
     const day=Number(o["何日目"]);
     if(!res[name]) res[name]={days:[],walica:"",date:parseDate(o["旅行日"]),sheetHidden:false};
-    if(o["非表示"]&&o["非表示"].trim()) res[name].sheetHidden=true;
+    if(isHiddenMark(o["非表示"])) res[name].sheetHidden=true;
     if(!res[name].walica && o["Walica"] && o["Walica"].trim()) res[name].walica=o["Walica"].trim();
     while(res[name].days.length<day) res[name].days.push([]);
     res[name].days[day-1].push({
@@ -397,6 +397,12 @@ async function loadTrip(){
   maybeScrollTripDone();
 }
 
+// 「非表示」列: チェックボックスの FALSE や 0・空欄は「表示」、それ以外（TRUE・○ など）は「非表示」
+function isHiddenMark(v){
+  const t=(v||"").trim().toLowerCase();
+  if(!t) return false;
+  return !["false","0","表示","no","いいえ","-","ー","−"].includes(t);
+}
 // ===== 旅程: 年タブ（シートの「非表示」列に値がある旅行は出さない） =====
 let currentTripYear=null;
 function tripYear(name){ const d=trips[name]&&trips[name].date; return d?String(d.getFullYear()):"その他"; }
