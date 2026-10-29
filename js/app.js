@@ -392,16 +392,13 @@ async function loadTrip(){
   });
   trips=res;
   const sel=document.getElementById("trip-sel");
-  sel.onchange=()=>{ renderTrip(sel.value); updateTripHideUI(); maybeScrollTripDone(); };
+  sel.onchange=()=>{ renderTrip(sel.value); maybeScrollTripDone(); };
   renderTripSelector();
   maybeScrollTripDone();
 }
 
-// ===== 旅程: 年タブ・非表示 =====
-const TRIP_HIDDEN_KEY="mhTripHidden";
-let tripHidden=new Set(), showHiddenTrips=false, currentTripYear=null;
-try{ tripHidden=new Set(JSON.parse(localStorage.getItem(TRIP_HIDDEN_KEY)||"[]")); }catch(e){}
-function saveTripHidden(){ try{ localStorage.setItem(TRIP_HIDDEN_KEY,JSON.stringify([...tripHidden])); }catch(e){} }
+// ===== 旅程: 年タブ（シートの「非表示」列に値がある旅行は出さない） =====
+let currentTripYear=null;
 function tripYear(name){ const d=trips[name]&&trips[name].date; return d?String(d.getFullYear()):"その他"; }
 // 新しい旅行が先（日付がないものは最後）
 function tripNamesSorted(){
@@ -411,7 +408,7 @@ function tripNamesSorted(){
   });
 }
 function visibleTripNames(){
-  return tripNamesSorted().filter(n=>!trips[n].sheetHidden&&(showHiddenTrips||!tripHidden.has(n)));
+  return tripNamesSorted().filter(n=>!trips[n].sheetHidden);
 }
 function renderTripSelector(){
   const sel=document.getElementById("trip-sel");
@@ -423,7 +420,7 @@ function renderTripSelector(){
     document.getElementById("trip-stats").innerHTML="";
     document.getElementById("trip-day-tabs").innerHTML="";
     document.getElementById("trip-days").innerHTML=`<div class="loading" style="animation:none">表示できる旅行がありません</div>`;
-    currentTripName=null; updateTripHideUI(); return;
+    currentTripName=null; return;
   }
   sel.disabled=false;
   if(currentTripName&&names.includes(currentTripName)) currentTripYear=tripYear(currentTripName);
@@ -433,11 +430,10 @@ function renderTripSelector(){
     return `<button type="button" class="trip-year-tab${y===currentTripYear?' active':''}" onclick="selectTripYear('${y}')">${y==="その他"?y:y+"年"}<span class="tab-frac">${n}</span></button>`;
   }).join("");
   const inYear=names.filter(n=>tripYear(n)===currentTripYear);
-  sel.innerHTML=inYear.map(n=>`<option value="${n}">${n}${tripHidden.has(n)?"（非表示中）":""}</option>`).join("");
+  sel.innerHTML=inYear.map(n=>`<option value="${n}">${n}</option>`).join("");
   const target=inYear.includes(currentTripName)?currentTripName:inYear[0];
   sel.value=target;
   renderTrip(target);
-  updateTripHideUI();
 }
 function selectTripYear(y){
   currentTripYear=y;
@@ -445,27 +441,6 @@ function selectTripYear(y){
   currentTripName=null;
   if(names.length) renderTripSelector();
   maybeScrollTripDone();
-}
-function toggleTripHidden(){
-  const n=currentTripName; if(!n) return;
-  if(tripHidden.has(n)) tripHidden.delete(n); else tripHidden.add(n);
-  saveTripHidden();
-  renderTripSelector();
-}
-function toggleShowHiddenTrips(){ showHiddenTrips=!showHiddenTrips; renderTripSelector(); }
-function updateTripHideUI(){
-  const btn=document.getElementById("trip-hide-btn");
-  const note=document.getElementById("trip-hidden-note");
-  if(btn){
-    btn.hidden=!currentTripName;
-    const h=currentTripName&&tripHidden.has(currentTripName);
-    btn.textContent=h?"再表示する":"この旅行を非表示";
-    btn.classList.toggle("is-hidden",!!h);
-  }
-  if(note){
-    const cnt=Object.keys(trips).filter(n=>tripHidden.has(n)&&!trips[n].sheetHidden).length;
-    note.innerHTML=cnt?`非表示中の旅行 ${cnt}件 <button type="button" onclick="toggleShowHiddenTrips()">${showHiddenTrips?"隠す":"表示する"}</button>`:"";
-  }
 }
 function renderTrip(name, opts){
   opts=opts||{};
