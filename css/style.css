@@ -476,3 +476,13 @@ button.badge-item{cursor:pointer;}
 .trip-year-tab .tab-frac{font-size:10px;opacity:.7;}
 .trip-selbox{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
 .trip-selbox select{flex:1;min-width:0;}
+
+/* ===== NAV: スマホでも1段・横スクロールなし ===== */
+@media(max-width:600px){
+  nav{padding:0 6px;}
+  .nav-top{padding:8px 0 4px;}
+  .nav-links{display:flex;flex-wrap:nowrap;justify-content:space-between;gap:0;overflow:visible;padding-bottom:8px;}
+  .nav-btn{padding:7px 5px;font-size:11px;letter-spacing:-.02em;}
+}
+@media(max-width:370px){ .nav-btn{padding:7px 3px;font-size:10.5px;} }
+@media(max-width:340px){ .nav-btn{padding:6px 2px;font-size:10px;letter-spacing:-.04em;} }
