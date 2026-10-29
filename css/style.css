@@ -467,3 +467,18 @@ button.badge-item{cursor:pointer;}
 
 /* ===== LIGHT: カードに薄い影 ===== */
 .tbl-wrap,.act-list,#top-upcoming,#top-recent,.kpi-member-card,.kpi-act-card,.badge-grid,.mh-pref-group,.prog-block,.rules-body,.comment-box,.det-info-item,.stat-chip,.cycle-stat,.cycle-cards,.trip-cards,.page-header,.det-header,.mp-hero,.hero{box-shadow:0 1px 2px rgba(20,30,60,.04),0 4px 14px rgba(20,30,60,.04);}
+
+/* ===== 旅程: 年タブ・非表示 ===== */
+.trip-year-tabs{display:inline-flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;padding:4px;background:var(--bg2);border:1px solid var(--border);border-radius:99px;max-width:100%;}
+.trip-year-tab{font-family:var(--num);font-size:13px;font-weight:800;padding:7px 15px;border:none;border-radius:99px;background:none;color:var(--text2);cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s;}
+.trip-year-tab:hover{color:var(--text);background:var(--bg3);}
+.trip-year-tab.active{background:var(--accent-grad);color:#fff;box-shadow:0 4px 14px rgba(255,122,47,.3);}
+.trip-year-tab .tab-frac{font-size:10px;opacity:.7;}
+.trip-selbox{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.trip-selbox select{flex:1;min-width:0;}
+.trip-hide-btn{font-size:11px;font-weight:700;padding:9px 13px;border-radius:var(--r);border:1px solid var(--border2);background:var(--bg2);color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .15s;}
+.trip-hide-btn:hover{background:var(--bg3);color:var(--text);}
+.trip-hide-btn.is-hidden{border-color:var(--accent);color:var(--accent2);}
+.trip-hidden-note{font-size:11px;color:var(--text3);margin:-6px 0 14px;}
+.trip-hidden-note:empty{display:none;}
+.trip-hidden-note button{font-size:11px;font-weight:700;color:var(--link);background:none;border:none;cursor:pointer;text-decoration:underline;text-underline-offset:2px;padding:0 2px;}

@@ -114,7 +114,12 @@
 <div id="manhole" class="page">
 <div class="container">
   <div class="page-header"><h1>マンホールカード旅程</h1><p>訪問先・移動時間・収集状況をまとめた旅行の行程表</p></div>
-  <div class="trip-selbox"><select id="trip-sel"><option>読み込み中…</option></select></div>
+  <div class="trip-year-tabs" id="trip-year-tabs"></div>
+  <div class="trip-selbox">
+    <select id="trip-sel"><option>読み込み中…</option></select>
+    <button type="button" class="trip-hide-btn" id="trip-hide-btn" onclick="toggleTripHidden()" hidden></button>
+  </div>
+  <div class="trip-hidden-note" id="trip-hidden-note"></div>
   <div class="trip-stats" id="trip-stats"></div>
   <div class="trip-day-tabs" id="trip-day-tabs"></div>
   <div id="trip-days"><div class="loading">読み込み中…</div></div>
